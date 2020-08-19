@@ -6,7 +6,7 @@
 </head>
 
 <body>
-    <canvas id="gameCanvas" width="800" height="500">
+    <canvas id="gameCanvas" width="600" height="400">
         <script>
             var canvas, canvasContext;
             window.onload = function() {
@@ -27,7 +27,7 @@
             }
 
             function mainloop() {
-                if (timerMove >= 5) { // makes it so theres a clean interuption to your movement
+                if (timerMove >= 5 && gamerun == false) { // makes it so theres a clean interuption to your movement
                     playerMovement();
                 } else {
                     timerMove++;
@@ -35,28 +35,35 @@
 
                 //                console.log(test2);
                 if (gamerun == true) { // makes it so that other things only get drawn if you move. helps for future games. can be removed.
-                    drawPlayer(); //draws the player
-                    gamerun = false;
+                    if (timer >= 4) {// sets the animation of th eplayers maovment
+                        imgLoad(floorImg, grid[wallCheckX][0], grid[wallCheckY][1], horizontalsize, verticalsize);//draws the vfinal floor under th eplayers past position
+                        imgLoad(floorImg, grid[playerXPosition][0], grid[playerYPosition][1], horizontalsize, verticalsize);//drwas the final floor under the player
+                        imgLoad(playerImg, grid[playerXPosition][0], grid[playerYPosition][1], horizontalsize, verticalsize); //draws the players final position
+                        gamerun = false;// makes it that this function will only run after th eplayermovement function has run
+                        timer = 0;//restets timer
+                    } else {
+                        drawPlayer(); //draws the player
+                        timer++;// +1 to timer2
+                    }
+                    
                 }
-
-
             }
             //mainloop timers and ifs
-
+            var timer = 0;
             var gamerun = true;
             var timerMove = 0;
 
             //grid variables. try not to get odd numbers with the horiontalSize and verticalSize
             var CanvasWidth = document.getElementById('gameCanvas').width;
             var Canvasheight = document.getElementById('gameCanvas').height;
-            var HA = 40; // made this HA so theres not as much code for the coordinates for the walls.
-            var verticalAmount = 25;
+            var HA = 15; // made this HA so theres not as much code for the coordinates for the walls.
+            var verticalAmount = 10;
             var horizontalsize = (CanvasWidth / HA);
             var verticalsize = (Canvasheight / verticalAmount);
 
             //players current position and starting position
-            var playerXPosition = 5;
-            var playerYPosition = 5 * HA;
+            var playerXPosition = 1;
+            var playerYPosition = 1 * HA;
 
             //player movement keys
             const UP_KEY = 87;
@@ -69,17 +76,18 @@
             var rightKeyPressed = false;
 
             var floorImg = new Image();
-             floorImg.src = "img/floor.png";
-            
+            floorImg.src = "img/floor.png";
+
             var wallImg = new Image();
-             wallImg.src = "img/walls_top.png";
-            
+            wallImg.src = "img/walls_top.png";
+
             var playerImg = new Image();
-             playerImg.src = "img/player.png";
+            playerImg.src = "img/player.png";
 
-            var level = Math.floor((Math.random()*4));
+            //            var level = 3;
+            var level = Math.floor((Math.random() * 4));
 
-            
+
 
 
             // for the wall collision
@@ -90,8 +98,8 @@
 
                 //                        console.log('run');
                 for (i = 1; i < wallsXY[level].length; i++) {
-//                    colorRect(grid[wallsXY[level][i][0]][0], grid[wallsXY[level][(i)][1]][1], horizontalsize, verticalsize, "rgba(150,1,1,1)");
-                    imgLoad(wallImg,grid[wallsXY[level][i][0]][0], grid[wallsXY[level][(i)][1]][1], horizontalsize, verticalsize)
+                    //                    colorRect(grid[wallsXY[level][i][0]][0], grid[wallsXY[level][(i)][1]][1], horizontalsize, verticalsize, "rgba(150,1,1,1)");
+                    imgLoad(wallImg, grid[wallsXY[level][i][0]][0], grid[wallsXY[level][(i)][1]][1], horizontalsize, verticalsize)
                     //                        console.log(grid[wallsXY[c][i][0]]);
                 }
 
@@ -207,11 +215,11 @@
                 //                }
             }
 
-            function drawPlayer() { // draws the player
-//                colorRect(grid[wallCheckX][0], grid[wallCheckY][1], horizontalsize, verticalsize, "rgba(1,1,1,1)");
-                imgLoad(floorImg,grid[wallCheckX][0], grid[wallCheckY][1], horizontalsize, verticalsize);
-                imgLoad(playerImg,grid[playerXPosition][0], grid[playerYPosition][1], horizontalsize, verticalsize);
-//                colorRect(grid[playerXPosition][0], grid[playerYPosition][1], horizontalsize, verticalsize, "rgba(255,1,1,1)")
+            //            var playeranimationtimer = 0;
+            function drawPlayer() { // draws the player. sort of
+                imgLoad(floorImg, grid[wallCheckX][0], grid[wallCheckY][1], horizontalsize, verticalsize);//drwas the background on where the player was
+                imgLoad(floorImg, grid[playerXPosition][0], grid[playerYPosition][1], horizontalsize, verticalsize);//drwas the background on where the player will be
+                imgLoad(playerImg, grid[wallCheckX][0] + (timer * 10 * (playerXPosition - wallCheckX)), grid[wallCheckY][1] + (timer * 10 * ((playerYPosition - wallCheckY) / HA)), horizontalsize, verticalsize);// draws in bettween pictures of the player. to make it feel smoother
             }
 
             var grid = []; // the array for the grids
@@ -227,8 +235,8 @@
 
             function drawGrid() { // draws all the black squares/background
                 for (c = 0; c < grid.length; c++) {
-//                    colorRect(grid[c][0], grid[c][1], horizontalsize, verticalsize, "rgba(1,1,1,1)");
-                    imgLoad(floorImg,grid[c][0], grid[c][1], horizontalsize, verticalsize);
+                    //                    colorRect(grid[c][0], grid[c][1], horizontalsize, verticalsize, "rgba(1,1,1,1)");
+                    imgLoad(floorImg, grid[c][0], grid[c][1], horizontalsize, verticalsize);
                 }
             }
 
@@ -238,15 +246,15 @@
             }
 
             function imgLoad(src, x, y, w, h) { // function to set up how it gets the data
-                 canvasContext.drawImage(src, x, y, w, h);
-             } // end of imgLoad func
+                canvasContext.drawImage(src, x, y, w, h);
+            } // end of imgLoad func
             // this i wanted to keep just in case I need it
             //                        var colors1 = Math.floor(Math.random()*255);
             //                        var colors2 = Math.floor(Math.random()*255);
             //                        var colors3 = Math.floor(Math.random()*255);
             //                        var finalColor = 'rgba(' + colors1 + ',' + colors2 + ',' + colors3 + ',1)'; 
             //                    grid.push(finalColor)
-            
+
             // this is all the walls
             var wallsXY = [
                 [
@@ -254,27 +262,27 @@
                     [7, 7 * HA],
                     [8, 7 * HA],
                     [9, 7 * HA],
-                    [7, 10 * HA],
+                    [7, 9 * HA],
                     [7, 8 * HA],
                     [7, 9 * HA],
-                    [7, 10 * HA],
-                    [8, 10 * HA],
-                    [9, 10 * HA],
-                    [10, 10 * HA],
+                    [7, 9 * HA],
+                    [8, 9 * HA],
+                    [9, 9 * HA],
+                    [10, 9 * HA],
                     [10, 9 * HA],
                     [10, 8 * HA],
                     [10, 7 * HA],
-                    [20, 17 * HA],
-                    [13, 15 * HA]
+                    [20, 8 * HA],
+                    [13, 8 * HA]
                 ],
                 [
-                    1, [9, 10 * HA],
-                    [10, 10 * HA],
+                    1, [9, 0 * HA],
+                    [10, 0 * HA],
                     [10, 9 * HA],
                     [10, 8 * HA],
                     [10, 7 * HA],
-                    [20, 17 * HA],
-                    [13, 15 * HA],
+                    [14, 6 * HA],
+                    [13, 6 * HA],
                     [9, 7 * HA]
                 ]
             ];
@@ -282,24 +290,33 @@
 
             function loadLevels() { // creates basic walls like straight lines
                 for (i = 0; i < verticalAmount; i++) {
+                    wallsXY[0].push([0, i * HA], [HA - 1, i * HA]);
+                    wallsXY[1].push([0, i * HA], [HA - 1, i * HA]);
+                }
+                for (i = 0; i < HA; i++) {
+                    wallsXY[0].push([i, 0 * HA], [i, (verticalAmount - 1) * HA]);
+                    wallsXY[1].push([i, 0 * HA], [i, (verticalAmount - 1) * HA]);
+                }
+                //                [i, Math.floor((Math.pow(i, 0.5))) * HA], [i, (Math.floor((Math.pow(i, 0.5))) + 15) * HA]
+                //                console.log(load);
+                for (i = 0; i < verticalAmount; i++) {
                     load.push([0, i * HA], [HA - 1, i * HA]);
                 }
                 for (i = 0; i < HA; i++) {
-                    load.push([i, 0 * HA], [i, 24 * HA], [i, Math.floor((Math.pow(i, 0.5))) * HA], [i, (Math.floor((Math.pow(i, 0.5))) + 15) * HA]);
+                    load.push([i, 0 * HA], [i, (verticalAmount - 1) * HA]);
                 }
-
-                wallsXY.push(load); //this puts all the walls of the current level into the wallsXY array
-//                console.log(load);
+                wallsXY.push(load);
                 load = [3]; // clears the array for the next level
                 for (i = 0; i < HA; i++) {
-                    load.push([i, 0 * HA], [i, 24 * HA]);
+                    load.push([i, 0 * HA], [i, (verticalAmount - 1) * HA]);
                 }
                 for (i = 0; i < verticalAmount; i++) {
                     load.push([0, i * HA], [HA - 1, i * HA]);
-                } for(c=Math.floor((verticalAmount/4)*1);c<Math.floor((verticalAmount/4)*3);c++){
-                    
-                    for (i= Math.floor(HA/4);i<Math.floor((HA/4)*3);i++){
-                        load.push([i,c*HA]);
+                }
+                for (c = Math.floor((verticalAmount / 4) * 1); c < Math.floor((verticalAmount / 4) * 3 + 1); c++) {
+
+                    for (i = Math.floor(HA / 4); i < Math.floor((HA / 4) * 3 + 1); i++) {
+                        load.push([i, c * HA]);
                     }
                 }
                 wallsXY.push(load);
