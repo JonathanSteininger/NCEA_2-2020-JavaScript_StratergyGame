@@ -32,7 +32,7 @@
                 } else {
                     timerMove++;
                 }
-
+                
                 //                console.log(test2);
                 if (gamerun == true) { // makes it so that other things only get drawn if you move. helps for future games. can be removed.
                     if (timer >= 4) {// sets the animation of th eplayers maovment
@@ -42,16 +42,33 @@
                         gamerun = false;// makes it that this function will only run after th eplayermovement function has run
                         timer = 0;//restets timer
                     } else {
+                        imgLoad(floorImg, grid[playerXPosition][0], grid[playerYPosition][1], horizontalsize, verticalsize);
                         drawPlayer(); //draws the player
                         timer++;// +1 to timer2
                     }
                     
+                }else{
+                    if (timer2 >=2){
+                        
+                        imgLoad(floorImg, grid[playerXPosition][0], grid[playerYPosition][1], horizontalsize, verticalsize);
+                        imgLoad2(playerImgMain, timer3*40, frameY*40, playerSpriteWidth, playerSpriteHeight,grid[playerXPosition][0], grid[playerYPosition][1], horizontalsize, verticalsize);
+                        if (timer3 >=9){
+                            timer3 = 0;
+                        }else{
+                            timer3++
+                        }
+                        timer2 = 0;
+                    }else{
+                        timer2++;
+                    }
                 }
             }
             //mainloop timers and ifs
             var timer = 0;
             var gamerun = true;
             var timerMove = 0;
+                var timer2 = 0;
+                var timer3 = 0;
 
             //grid variables. try not to get odd numbers with the horiontalSize and verticalSize
             var CanvasWidth = document.getElementById('gameCanvas').width;
@@ -64,6 +81,11 @@
             //players current position and starting position
             var playerXPosition = 1;
             var playerYPosition = 1 * HA;
+            
+            var playerSpriteHeight = verticalsize;
+            var playerSpriteWidth = horizontalsize;
+            var frameX = 2;
+            var frameY = 0;
 
             //player movement keys
             const UP_KEY = 87;
@@ -74,6 +96,15 @@
             var downKeyPressed = false;
             var leftKeyPressed = false;
             var rightKeyPressed = false;
+            
+            const UP_ARROW_KEY = 38;
+            const DOWN_ARROW_KEY = 40;
+            const LEFT_ARROW_KEY = 37;
+            const RIGHT_ARROW_KEY = 39;
+            var hitUpKeyPressed = false;
+            var hitDownKeyPressed = false;
+            var hitLeftKeyPressed = false;
+            var hitRightKeyPressed = false;
 
             var floorImg = new Image();
             floorImg.src = "img/floor.png";
@@ -83,8 +114,11 @@
 
             var playerImg = new Image();
             playerImg.src = "img/player.png";
+            
+            var playerImgMain = new Image();
+            playerImgMain.src = "img/main_player.png";
 
-            //            var level = 3;
+//                        var level = 0;// this is to test spesific levels
             var level = Math.floor((Math.random() * 4));
 
 
@@ -107,7 +141,19 @@
 
             }
 
-            function keyPressed(evt) { /// had to put multiple so therres no order issue for the movement. helps it stop feeling sticky.
+            function keyPressed(evt) { /// had to put multiple so there is no order issue for the movement. helps it stop feeling sticky.
+                if (evt.keyCode == UP_ARROW_KEY){
+                    hitUpKeyPressed = true;
+                }
+                if (evt.keyCode == DOWN_ARROW_KEY){
+                    hitDownKeyPressed = true;
+                }
+                if (evt.keyCode == LEFT_ARROW_KEY){
+                    hitLeftKeyPressed = true;
+                }
+                if (evt.keyCode == RIGHT_ARROW_KEY){
+                    hitRightKeyPressed = true;
+                }
                 if (evt.keyCode == UP_KEY && downKeyPressed == false && leftKeyPressed == false && rightKeyPressed == false) {
                     upKeyPressed = true;
 
@@ -151,10 +197,23 @@
                 } else {
                     rightKeyPressed = false;
                 }
+                
 
             }
 
             function keyReleased(evt) {
+                if (evt.keyCode == UP_ARROW_KEY){
+                    hitUpKeyPressed = false;
+                }
+                if (evt.keyCode == DOWN_ARROW_KEY){
+                    hitDownKeyPressed = false;
+                }
+                if (evt.keyCode == LEFT_ARROW_KEY){
+                    hitLeftKeyPressed = false;
+                }
+                if (evt.keyCode == RIGHT_ARROW_KEY){
+                    hitRightKeyPressed = false;
+                }
                 if (evt.keyCode == UP_KEY) {
                     upKeyPressed = false;
                 }
@@ -167,31 +226,40 @@
                 if (evt.keyCode == LEFT_KEY) {
                     leftKeyPressed = false;
                 }
+               
             }
 
+            function Attack(){
+                if(hitUpKeyPressed == true){
+                    colorRect(grid[playerXPosition][0], grid[playerYPosition-HA][1], horizontalsize, verticalsize, 'rgb(1,1,1,1)');
+    
+                    gamerun = true; // lets the mainloop draw the rest of the game
+                }
+            }
+            
             function playerMovement() { // this changes the player's position
                 //use + or - 10 to move up or down.
                 // use =  or - 1 to mave left to right.
-
+                Attack();
                 wallCheckY = playerYPosition; // to remember past Yposition for later
                 wallCheckX = playerXPosition; // to remember past Xposition for later
 
-                if (upKeyPressed == true) {
+                if (upKeyPressed == true && timerMove >= 5) {
                     playerYPosition -= HA;
                     gamerun = true; // lets the mainloop draw the rest of the game
                     timerMove = 0; // resets the timer for next move
                 }
-                if (downKeyPressed == true) {
+                if (downKeyPressed == true && timerMove >= 5) {
                     playerYPosition += HA;
                     gamerun = true; // lets the mainloop draw the rest of the game
                     timerMove = 0; // resets the timer for next move
                 }
-                if (leftKeyPressed == true) {
+                if (leftKeyPressed == true && timerMove >= 5) {
                     playerXPosition -= 1;
                     gamerun = true; // lets the mainloop draw the rest of the game
                     timerMove = 0; // resets the timer for next move
                 }
-                if (rightKeyPressed == true) {
+                if (rightKeyPressed == true && timerMove >= 5) {
                     playerXPosition += 1;
                     gamerun = true; // lets the mainloop draw the rest of the game
                     timerMove = 0; // resets the timer for next move
@@ -247,7 +315,12 @@
 
             function imgLoad(src, x, y, w, h) { // function to set up how it gets the data
                 canvasContext.drawImage(src, x, y, w, h);
-            } // end of imgLoad func
+            }
+            function imgLoad2(src, x, y, w, h, dx, dy, dWidth, dHeight) { // function to set up how it gets the data
+                canvasContext.drawImage(src, x, y, w, h, dx, dy, dWidth, dHeight);
+            }
+            
+            // end of imgLoad func
             // this i wanted to keep just in case I need it
             //                        var colors1 = Math.floor(Math.random()*255);
             //                        var colors2 = Math.floor(Math.random()*255);
@@ -272,7 +345,7 @@
                     [10, 9 * HA],
                     [10, 8 * HA],
                     [10, 7 * HA],
-                    [20, 8 * HA],
+                    [3, 8 * HA],
                     [13, 8 * HA]
                 ],
                 [
