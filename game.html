@@ -17,7 +17,7 @@
                 document.addEventListener('keyup', keyReleased); // sets the event for the keyreleased func 
 
                 setInterval(
-                    mainloop, 1000 / 50); // starts the game loop
+                    mainloop, 1000 / 35); // starts the game loop
 
                 creatGrid(); // creates the grid for the entier game
                 loadLevels(); // creates all the levels walls
@@ -29,46 +29,56 @@
             function mainloop() {
                 if (timerMove >= 5 && gamerun == false) { // makes it so theres a clean interuption to your movement
                     playerMovement();
+
                 } else {
                     timerMove++;
                 }
                 
                 //                console.log(test2);
                 if (gamerun == true) { // makes it so that other things only get drawn if you move. helps for future games. can be removed.
-                    if (timer >= 4) {// sets the animation of th eplayers maovment
-                        imgLoad(floorImg, grid[wallCheckX][0], grid[wallCheckY][1], horizontalsize, verticalsize);//draws the vfinal floor under th eplayers past position
-                        imgLoad(floorImg, grid[playerXPosition][0], grid[playerYPosition][1], horizontalsize, verticalsize);//drwas the final floor under the player
-                        imgLoad(playerImg, grid[playerXPosition][0], grid[playerYPosition][1], horizontalsize, verticalsize); //draws the players final position
-                        gamerun = false;// makes it that this function will only run after th eplayermovement function has run
-                        timer = 0;//restets timer
+                    if (timer >= 4) { // sets the animation of th eplayers maovment
+                        drawPlayer();
+                        drawAI();
+                        gamerun = false; // makes it that this function will only run after th eplayermovement function has run
+                        timer = 0; //restets timer
                     } else {
                         imgLoad(floorImg, grid[playerXPosition][0], grid[playerYPosition][1], horizontalsize, verticalsize);
                         drawPlayer(); //draws the player
-                        timer++;// +1 to timer2
+                        timer++; // +1 to timer2
                     }
-                    
-                }else{
-                    if (timer2 >=2){
-                        
-                        imgLoad(floorImg, grid[playerXPosition][0], grid[playerYPosition][1], horizontalsize, verticalsize);
-                        imgLoad2(playerImgMain, timer3*40, frameY*40, playerSpriteWidth, playerSpriteHeight,grid[playerXPosition][0], grid[playerYPosition][1], horizontalsize, verticalsize);
-                        if (timer3 >=9){
-                            timer3 = 0;
-                        }else{
-                            timer3++
+
+
+                } else {
+                    if (upKeyPressed == false && downKeyPressed == false && leftKeyPressed == false && rightKeyPressed == false) {
+                        if (timer2 >= 2) {
+
+                            imgLoad(floorImg, grid[playerXPosition][0], grid[playerYPosition][1], horizontalsize, verticalsize);
+                            imgLoad2(playerImgMain, timer3 * 40, frameY * 40, playerSpriteWidth, playerSpriteHeight, grid[playerXPosition][0], grid[playerYPosition][1], horizontalsize, verticalsize);
+                            if (timer3 >= 9) {
+                                timer3 = 0;
+                            } else {
+                                timer3++
+                            }
+                            timer2 = 0;
+                        } else {
+                            timer2++;
                         }
-                        timer2 = 0;
-                    }else{
-                        timer2++;
                     }
                 }
+//                if (timerfour >= 15){
+//                    timerfour = 0;
+//                    
+//                }else{
+//                    timerfour++;
+//                }
             }
             //mainloop timers and ifs
             var timer = 0;
             var gamerun = true;
             var timerMove = 0;
-                var timer2 = 0;
-                var timer3 = 0;
+            var timer2 = 0;
+            var timer3 = 0;
+            var timerfour = 0;
 
             //grid variables. try not to get odd numbers with the horiontalSize and verticalSize
             var CanvasWidth = document.getElementById('gameCanvas').width;
@@ -79,13 +89,14 @@
             var verticalsize = (Canvasheight / verticalAmount);
 
             //players current position and starting position
-            var playerXPosition = 1;
-            var playerYPosition = 1 * HA;
-            
+            var playerXPosition = 12;
+            var playerYPosition = 7 * HA;
+
             var playerSpriteHeight = verticalsize;
             var playerSpriteWidth = horizontalsize;
             var frameX = 2;
             var frameY = 0;
+            var moveFrame = 1;
 
             //player movement keys
             const UP_KEY = 87;
@@ -96,15 +107,7 @@
             var downKeyPressed = false;
             var leftKeyPressed = false;
             var rightKeyPressed = false;
-            
-            const UP_ARROW_KEY = 38;
-            const DOWN_ARROW_KEY = 40;
-            const LEFT_ARROW_KEY = 37;
-            const RIGHT_ARROW_KEY = 39;
-            var hitUpKeyPressed = false;
-            var hitDownKeyPressed = false;
-            var hitLeftKeyPressed = false;
-            var hitRightKeyPressed = false;
+
 
             var floorImg = new Image();
             floorImg.src = "img/floor.png";
@@ -114,14 +117,12 @@
 
             var playerImg = new Image();
             playerImg.src = "img/player.png";
-            
+
             var playerImgMain = new Image();
             playerImgMain.src = "img/main_player.png";
 
-//                        var level = 0;// this is to test spesific levels
+//                                    var level = 2;// this is to test spesific levels
             var level = Math.floor((Math.random() * 4));
-
-
 
 
             // for the wall collision
@@ -129,31 +130,94 @@
             var wallCheckX = playerXPosition;
 
             function drawWalls() {
-
-                //                        console.log('run');
                 for (i = 1; i < wallsXY[level].length; i++) {
-                    //                    colorRect(grid[wallsXY[level][i][0]][0], grid[wallsXY[level][(i)][1]][1], horizontalsize, verticalsize, "rgba(150,1,1,1)");
-                    imgLoad(wallImg, grid[wallsXY[level][i][0]][0], grid[wallsXY[level][(i)][1]][1], horizontalsize, verticalsize)
-                    //                        console.log(grid[wallsXY[c][i][0]]);
+                    imgLoad2(wallImg, wallsXY[level][i][2] * horizontalsize, wallsXY[level][i][3] * horizontalsize, horizontalsize, horizontalsize, grid[wallsXY[level][i][0]][0], grid[wallsXY[level][(i)][1]][1], horizontalsize, verticalsize);
                 }
-
-
-
             }
+            
+            // amke an ui df statement that checks wtheer the x pos is further trhan the y pos. move in thaty direction.
+            //draw the enemy correctley.
+            // amek a loopo in order to make all enemies on screen walk by themselves.
+            // this will make it that they have there own animation.
+            
+            
+            var aipos = [2,(verticalAmount-9)*HA];
+            var aiXPast = 0;
+            var aiYPast = 0;
+            
+            function drawAI(){
+                aiXPast = aipos[0];
+                aiYPast = aipos[1];
+                if(difference(aipos[0], playerXPosition)>=(difference(aipos[1], playerYPosition)/HA)){
+                    if (aipos[0]==playerXPosition && aipos[1]<playerYPosition){
+                        aipos[1] += HA;
+                    } else if(aipos[0]==playerXPosition && aipos[1]>playerYPosition){
+                        aipos[1] -= HA;
+                        
+                    }else if (aipos[0]<playerXPosition){
+                        aipos[0]++;
+                    } else if (aipos[0]>playerXPosition){
+                        aipos[0]--;
+                    }
+                    
+                    
+                }else{
+                    if (aipos[1]==playerYPosition && aipos[0]<playerXPosition){
+                        aipos[0]++;
+                    } else if(aipos[1]==playerYPosition && aipos[0]>playerXPosition){
+                        aipos[0]--;                        
+                    }
+                    else if (aipos[1]<playerYPosition){
+                        aipos[1] += HA;
+                    }
+                    else if (aipos[1]>playerYPosition){
+                        aipos[1] -= HA;
+                    }
+                }
+                
+                
+                for (i = 1; i < wallsXY[level].length; i++) {
+                    if (aipos[0] == wallsXY[level][i][0] && aipos[1] == wallsXY[level][i][1]) { // if the players position is the same as the walls position then it will turn it back to its position befor hand.
+                        aipos[0] = aiXPast; //changes the poition to its previouse state
+                        aipos[1] = aiYPast; //changes the poition to its previouse state
+                    }
+                }
+                
+                if (aipos[0] == aiXPast && aipos[1] == aiYPast){
+                }else {
+                    imgLoad(floorImg, grid[aiXPast][0], grid[aiYPast][1], horizontalsize, verticalsize);   
+                }
+                        colorRect(grid[aipos[0]][0], grid[aipos[1]][1], horizontalsize, horizontalsize, 'rgb(1,1,1,1)');
+                
+                
+                
+                
+//                imgLoad2(wallImg, wallsXY[level][aiXPast][2] * horizontalsize, wallsXY[level][aiYPast][3] * horizontalsize, horizontalsize, horizontalsize, grid[wallsXY[level][aiXPast][0]][0], grid[wallsXY[level][(aiYPast)][1]][1], horizontalsize, verticalsize);
+                
+                
+                
+            }
+            
+            function difference(a, b) {// checks the difference in values
+                return Math.abs(a - b);
+            }
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
 
             function keyPressed(evt) { /// had to put multiple so there is no order issue for the movement. helps it stop feeling sticky.
-                if (evt.keyCode == UP_ARROW_KEY){
-                    hitUpKeyPressed = true;
-                }
-                if (evt.keyCode == DOWN_ARROW_KEY){
-                    hitDownKeyPressed = true;
-                }
-                if (evt.keyCode == LEFT_ARROW_KEY){
-                    hitLeftKeyPressed = true;
-                }
-                if (evt.keyCode == RIGHT_ARROW_KEY){
-                    hitRightKeyPressed = true;
-                }
+                
                 if (evt.keyCode == UP_KEY && downKeyPressed == false && leftKeyPressed == false && rightKeyPressed == false) {
                     upKeyPressed = true;
 
@@ -197,23 +261,12 @@
                 } else {
                     rightKeyPressed = false;
                 }
-                
+
 
             }
 
             function keyReleased(evt) {
-                if (evt.keyCode == UP_ARROW_KEY){
-                    hitUpKeyPressed = false;
-                }
-                if (evt.keyCode == DOWN_ARROW_KEY){
-                    hitDownKeyPressed = false;
-                }
-                if (evt.keyCode == LEFT_ARROW_KEY){
-                    hitLeftKeyPressed = false;
-                }
-                if (evt.keyCode == RIGHT_ARROW_KEY){
-                    hitRightKeyPressed = false;
-                }
+                
                 if (evt.keyCode == UP_KEY) {
                     upKeyPressed = false;
                 }
@@ -226,21 +279,21 @@
                 if (evt.keyCode == LEFT_KEY) {
                     leftKeyPressed = false;
                 }
-               
+
             }
 
-            function Attack(){
-                if(hitUpKeyPressed == true){
-                    colorRect(grid[playerXPosition][0], grid[playerYPosition-HA][1], horizontalsize, verticalsize, 'rgb(1,1,1,1)');
-    
-                    gamerun = true; // lets the mainloop draw the rest of the game
-                }
-            }
-            
+//            function Attack() {
+//                if (hitUpKeyPressed == true) {
+//                    colorRect(grid[playerXPosition][0], grid[playerYPosition - HA][1], horizontalsize, verticalsize, 'rgb(1,1,1,1)');
+//
+//                    gamerun = true; // lets the mainloop draw the rest of the game
+//                }
+//            }
+
             function playerMovement() { // this changes the player's position
                 //use + or - 10 to move up or down.
                 // use =  or - 1 to mave left to right.
-                Attack();
+                //                Attack();
                 wallCheckY = playerYPosition; // to remember past Yposition for later
                 wallCheckX = playerXPosition; // to remember past Xposition for later
 
@@ -248,21 +301,25 @@
                     playerYPosition -= HA;
                     gamerun = true; // lets the mainloop draw the rest of the game
                     timerMove = 0; // resets the timer for next move
+                    moveFrame = 3;
                 }
                 if (downKeyPressed == true && timerMove >= 5) {
                     playerYPosition += HA;
                     gamerun = true; // lets the mainloop draw the rest of the game
                     timerMove = 0; // resets the timer for next move
+                    moveFrame = 4;
                 }
                 if (leftKeyPressed == true && timerMove >= 5) {
                     playerXPosition -= 1;
                     gamerun = true; // lets the mainloop draw the rest of the game
                     timerMove = 0; // resets the timer for next move
+                    moveFrame = 2;
                 }
                 if (rightKeyPressed == true && timerMove >= 5) {
                     playerXPosition += 1;
                     gamerun = true; // lets the mainloop draw the rest of the game
                     timerMove = 0; // resets the timer for next move
+                    moveFrame = 1;
                 }
 
                 //                        console.log('run');
@@ -285,9 +342,9 @@
 
             //            var playeranimationtimer = 0;
             function drawPlayer() { // draws the player. sort of
-                imgLoad(floorImg, grid[wallCheckX][0], grid[wallCheckY][1], horizontalsize, verticalsize);//drwas the background on where the player was
-                imgLoad(floorImg, grid[playerXPosition][0], grid[playerYPosition][1], horizontalsize, verticalsize);//drwas the background on where the player will be
-                imgLoad(playerImg, grid[wallCheckX][0] + (timer * 10 * (playerXPosition - wallCheckX)), grid[wallCheckY][1] + (timer * 10 * ((playerYPosition - wallCheckY) / HA)), horizontalsize, verticalsize);// draws in bettween pictures of the player. to make it feel smoother
+                imgLoad(floorImg, grid[wallCheckX][0], grid[wallCheckY][1], horizontalsize, verticalsize); //drwas the background on where the player was
+                imgLoad(floorImg, grid[playerXPosition][0], grid[playerYPosition][1], horizontalsize, verticalsize); //drwas the background on where the player will be
+                imgLoad2(playerImgMain, timer * 40, moveFrame * 40, playerSpriteWidth, playerSpriteHeight, grid[wallCheckX][0] + (timer * 10 * (playerXPosition - wallCheckX)), grid[wallCheckY][1] + (timer * 10 * ((playerYPosition - wallCheckY) / HA)), horizontalsize, verticalsize); // draws in bettween pictures of the player. to make it feel smoother
             }
 
             var grid = []; // the array for the grids
@@ -298,7 +355,7 @@
                         grid.push([(horizontalsize * (i)), (verticalsize * (c))]);
                     }
                 }
-                console.log(grid); // to see all the coordinates
+//                console.log(grid); // to see all the coordinates
             }
 
             function drawGrid() { // draws all the black squares/background
@@ -316,10 +373,11 @@
             function imgLoad(src, x, y, w, h) { // function to set up how it gets the data
                 canvasContext.drawImage(src, x, y, w, h);
             }
+
             function imgLoad2(src, x, y, w, h, dx, dy, dWidth, dHeight) { // function to set up how it gets the data
                 canvasContext.drawImage(src, x, y, w, h, dx, dy, dWidth, dHeight);
             }
-            
+
             // end of imgLoad func
             // this i wanted to keep just in case I need it
             //                        var colors1 = Math.floor(Math.random()*255);
@@ -332,69 +390,98 @@
             var wallsXY = [
                 [
                     0,
-                    [7, 7 * HA],
-                    [8, 7 * HA],
-                    [9, 7 * HA],
-                    [7, 9 * HA],
-                    [7, 8 * HA],
-                    [7, 9 * HA],
-                    [7, 9 * HA],
-                    [8, 9 * HA],
-                    [9, 9 * HA],
-                    [10, 9 * HA],
-                    [10, 9 * HA],
-                    [10, 8 * HA],
-                    [10, 7 * HA],
-                    [3, 8 * HA],
-                    [13, 8 * HA]
+                    [7, 7 * HA, 0, 4],
+                    [8, 7 * HA, 0, 4],
+                    [9, 7 * HA, 0, 4],
+                    [7, 9 * HA, 0, 4],
+                    [7, 8 * HA, 0, 4],
+                    [7, 9 * HA, 0, 4],
+                    [7, 9 * HA, 0, 4],
+                    [8, 9 * HA, 0, 4],
+                    [9, 9 * HA, 0, 4],
+                    [10, 9 * HA, 0, 4],
+                    [10, 9 * HA, 0, 4],
+                    [10, 8 * HA, 0, 4],
+                    [10, 7 * HA, 0, 4],
+                    [3, 8 * HA, 0, 4],
+                    [13, 8 * HA, 0, 4]
                 ],
                 [
-                    1, [9, 0 * HA],
-                    [10, 0 * HA],
-                    [10, 9 * HA],
-                    [10, 8 * HA],
-                    [10, 7 * HA],
-                    [14, 6 * HA],
-                    [13, 6 * HA],
-                    [9, 7 * HA]
+                    1, [9, 0 * HA, 0, 4],
+                    [10, 0 * HA, 0, 4],
+                    [10, 9 * HA, 0, 4],
+                    [10, 8 * HA, 0, 4],
+                    [10, 7 * HA, 0, 4],
+                    [14, 6 * HA, 0, 4],
+                    [13, 6 * HA, 0, 4],
+                    [9, 7 * HA, 0, 4]
                 ]
             ];
             var load = [2]; // this is a substitute for loading all the levels
-
+            var left = 0;
+            var right = 1;
             function loadLevels() { // creates basic walls like straight lines
                 for (i = 0; i < verticalAmount; i++) {
-                    wallsXY[0].push([0, i * HA], [HA - 1, i * HA]);
-                    wallsXY[1].push([0, i * HA], [HA - 1, i * HA]);
+                    VERTICAL_WALLS();
+                    wallsXY[0].push([0, i * HA, 0, left], [HA - 1, i * HA, 0, right]);
+                    wallsXY[1].push([0, i * HA, 0, left], [HA - 1, i * HA, 0, right]);
                 }
                 for (i = 0; i < HA; i++) {
-                    wallsXY[0].push([i, 0 * HA], [i, (verticalAmount - 1) * HA]);
-                    wallsXY[1].push([i, 0 * HA], [i, (verticalAmount - 1) * HA]);
+                    HA_WALLS();
+                    wallsXY[0].push([i, 0 * HA, 0, left], [i, (verticalAmount - 1)*HA, 0, right]);
+                    wallsXY[1].push([i, 0 * HA, 0, left], [i, (verticalAmount - 1)*HA, 0, right]);
                 }
-                //                [i, Math.floor((Math.pow(i, 0.5))) * HA], [i, (Math.floor((Math.pow(i, 0.5))) + 15) * HA]
-                //                console.log(load);
                 for (i = 0; i < verticalAmount; i++) {
-                    load.push([0, i * HA], [HA - 1, i * HA]);
+                    VERTICAL_WALLS();
+                    load.push([0, i * HA, 0, left], [HA - 1, i * HA, 0, right]);
                 }
                 for (i = 0; i < HA; i++) {
-                    load.push([i, 0 * HA], [i, (verticalAmount - 1) * HA]);
+                    HA_WALLS();
+                    load.push([i, 0 * HA, 0, left], [i, (verticalAmount - 1)*HA, 0, right]);
                 }
                 wallsXY.push(load);
                 load = [3]; // clears the array for the next level
                 for (i = 0; i < HA; i++) {
-                    load.push([i, 0 * HA], [i, (verticalAmount - 1) * HA]);
+                    HA_WALLS();
+                    load.push([i, 0 * HA, 0, left], [i, (verticalAmount - 1)*HA, 0, right]);
                 }
                 for (i = 0; i < verticalAmount; i++) {
-                    load.push([0, i * HA], [HA - 1, i * HA]);
+                    VERTICAL_WALLS();
+                    load.push([0, i * HA, 0, left], [HA - 1, i * HA, 0, right]);
                 }
                 for (c = Math.floor((verticalAmount / 4) * 1); c < Math.floor((verticalAmount / 4) * 3 + 1); c++) {
 
                     for (i = Math.floor(HA / 4); i < Math.floor((HA / 4) * 3 + 1); i++) {
-                        load.push([i, c * HA]);
+                        load.push([i, c * HA, 0, 4]);
                     }
                 }
                 wallsXY.push(load);
                 load = [4];
 
+            }
+            function VERTICAL_WALLS(){
+                    left = 0;
+                    right = 1;
+                    if(i==0){
+                        left = 5;
+                        right = 6;
+                    }
+                    if (i == verticalAmount-1){
+                        left = 7;
+                        right = 8;
+                    }
+            }
+            function HA_WALLS(){
+                    left = 2;
+                    right = 3;
+                    if(i==0){
+                        left = 5;
+                        right = 7;
+                    }
+                    if (i == HA-1){
+                        left = 6;
+                        right = 8;
+                    }
             }
 
         </script>
