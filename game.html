@@ -27,70 +27,76 @@
             }
 
             function mainloop() {
-                if (timerMove >= 5 && gamerun == false) { // makes it so theres a clean interuption to your movement
-                    playerMovement();
+                if (game) {
 
-                } else {
-                    timerMove++;
-                }
-                //                console.log(test2);
-                if (gamerun == true) { // makes it so that other things only get drawn if you move. helps for future games. can be removed.
-                    enemyPositions.forEach(Element => {
-                        if (playerXPosition == Element[0] && playerYPosition == Element[1]) { // if the players position is the same as the walls position then it will turn it back to its position befor hand.
-                            playerXPosition = wallCheckX; //changes the poition to its previouse state
-                            playerYPosition = wallCheckY; //changes the poition to its previouse state
-                            Element[2] = 0;
-                            imgLoad(floorImg, grid[Element[0]][0], grid[Element[1]][1], horizontalsize, verticalsize);
-//                            movement = false;
-                            moveFrame += 4;
-                        }
-                    });
+                    if (timerMove >= 5 && gamerun == false) { // makes it so theres a clean interuption to your movement
 
-                    if (timer <= 3) { // sets the animation of th eplayers maovment
-                        if (movement == true) {
-                            imgLoad(floorImg, grid[playerXPosition][0], grid[playerYPosition][1], horizontalsize, verticalsize);
-                            drawPlayer(); //draws the player
-                        }
-                        timer++; // +1 to timer2
+                        playerMovement();
+
                     } else {
-                        drawAI(); // HAVE TO FIX THIUS ORDER ISSUE MABEY ANTHOHER FOREACH LOOP?
-
-
-                        drawPlayer();
-                        gamerun = false; // makes it that this function will only run after th eplayermovement function has run
-                        movement = true;
-                        timer = 0; //restets timer
-
+                        timerMove++;
                     }
-
-
-                } else {
-                    if (upKeyPressed == false && downKeyPressed == false && leftKeyPressed == false && rightKeyPressed == false) {
-                        if (timer2 >= 2) {
-
-                            imgLoad(floorImg, grid[playerXPosition][0], grid[playerYPosition][1], horizontalsize, verticalsize);
-                            imgLoad2(playerImgMain, timer3 * 40, frameY * 40, playerSpriteWidth, playerSpriteHeight, grid[playerXPosition][0], grid[playerYPosition][1], horizontalsize, verticalsize);
-                            if (timer3 >= 9) {
-                                timer3 = 0;
-                            } else {
-                                timer3++
+                    //                console.log(test2);
+                    if (gamerun == true) { // makes it so that other things only get drawn if you move. helps for future games. can be removed.
+                        enemyPositions.forEach(Element => {
+                            if (playerXPosition == Element[0] && playerYPosition == Element[1]) { // if the players position is the same as the walls position then it will turn it back to its position befor hand.
+                                playerXPosition = wallCheckX; //changes the poition to its previouse state
+                                playerYPosition = wallCheckY; //changes the poition to its previouse state
+                                Element[2] = 0;
+                                imgLoad(floorImg, grid[Element[0]][0], grid[Element[1]][1], horizontalsize, verticalsize);
+                                //                            movement = false;
+                                moveFrame += 4;
                             }
-                            timer2 = 0;
+                        });
+
+                        if (timer <= 3) { // sets the animation of th eplayers maovment
+                            if (movement == true) {
+                                imgLoad(floorImg, grid[playerXPosition][0], grid[playerYPosition][1], horizontalsize, verticalsize);
+                                drawPlayer(); //draws the player
+                            }
+                            timer++; // +1 to timer2
                         } else {
-                            timer2++;
+                            drawAI(); // HAVE TO FIX THIUS ORDER ISSUE MABEY ANTHOHER FOREACH LOOP?
+
+
+                            drawPlayer();
+                            gamerun = false; // makes it that this function will only run after th eplayermovement function has run
+                            movement = true;
+                            timer = 0; //restets timer
+
+                        }
+
+
+                    } else {
+                        if (upKeyPressed == false && downKeyPressed == false && leftKeyPressed == false && rightKeyPressed == false) {
+                            if (timer2 >= 2) {
+
+                                imgLoad(floorImg, grid[playerXPosition][0], grid[playerYPosition][1], horizontalsize, verticalsize);
+                                imgLoad2(playerImgMain, timer3 * 40, frameY * 40, playerSpriteWidth, playerSpriteHeight, grid[playerXPosition][0], grid[playerYPosition][1], horizontalsize, verticalsize);
+                                if (timer3 >= 9) {
+                                    timer3 = 0;
+                                } else {
+                                    timer3++
+                                }
+                                timer2 = 0;
+                            } else {
+                                timer2++;
+                            }
                         }
                     }
+                } else {
+                    colorRect(0, 0, CanvasWidth, Canvasheight, 'rgb(1,1,1,1)')
                 }
 
             }
             //mainloop timers and ifs
-            var timer = 0;
             var gamerun = true;
+            var movement = false;
             var timerMove = 0;
+            var timer = 0;
             var timer2 = 0;
             var timer3 = 0;
-            var timerfour = 0;
-            var movement = false;
+            var game = true;
 
             //grid variables. try not to get odd numbers with the horiontalSize and verticalSize
             var CanvasWidth = document.getElementById('gameCanvas').width;
@@ -120,8 +126,6 @@
             var leftKeyPressed = false;
             var rightKeyPressed = false;
 
-            var enemylife = true;
-
             var floorImg = new Image();
             floorImg.src = "img/floor.png";
 
@@ -135,7 +139,7 @@
             playerImgMain.src = "img/main_player.png";
 
             //                                    var level = 2;// this is to test spesific levels
-            var level = Math.floor((Math.random() * 4));
+
 
 
             // for the wall collision
@@ -148,64 +152,64 @@
                 }
             }
 
-            // amke an ui df statement that checks wtheer the x pos is further trhan the y pos. move in thaty direction.
-            //draw the enemy correctley.
-            // amek a loopo in order to make all enemies on screen walk by themselves.
-            // this will make it that they have there own animation.
-
-
-//            var aipos = [2, (verticalAmount - 9) * HA];
             var aiXPast = 0;
             var aiYPast = 0;
 
             var enemyPositions = [
-//                [2, (verticalAmount - 9) * HA, 1],
-//                [5, (verticalAmount - 9) * HA, 1],
-                [9, (verticalAmount - 9) * HA, 1],
-
-
+                [9, (verticalAmount - 9) * HA, 1], //[x,y,1=alive/0=dead]
             ];
 
             function drawAI() {
 
                 enemyPositions.forEach(Element => {
-                    //                    console.log(Element[0])
+                    function aiYmove() {
+                        if (Element[1] == playerYPosition && Element[0] < playerXPosition) {
+                            Element[0]++;
+                        } else if (Element[1] == playerYPosition && Element[0] > playerXPosition) {
+                            Element[0]--;
+                        } else if (Element[1] < playerYPosition) {
+                            Element[1] += HA;
+                        } else if (Element[1] > playerYPosition) {
+                            Element[1] -= HA;
+                        }
+                    }
 
-                    //                    if (playerXPosition == Element[0] && playerYPosition == Element[1]) { // if the players position is the same as the walls position then it will turn it back to its position befor hand.
-                    //                        playerXPosition = wallCheckX; //changes the poition to its previouse state
-                    //                        playerYPosition = wallCheckY; //changes the poition to its previouse state
-                    //                        Element[2] = 0;
-                    //                    }
+                    function aiXmove() {
+                        if (Element[0] == playerXPosition && Element[1] < playerYPosition) {
+                            Element[1] += HA;
+                        } else if (Element[0] == playerXPosition && Element[1] > playerYPosition) {
+                            Element[1] -= HA;
+
+                        } else if (Element[0] < playerXPosition) {
+                            Element[0]++;
+                        } else if (Element[0] > playerXPosition) {
+                            Element[0]--;
+                        }
+                    }
 
                     if (Element[2] == 1) {
-
                         aiXPast = Element[0];
                         aiYPast = Element[1];
                         if (difference(Element[0], playerXPosition) >= (difference(Element[1], playerYPosition) / HA)) {
-                            if (Element[0] == playerXPosition && Element[1] < playerYPosition) {
-                                Element[1] += HA;
-                            } else if (Element[0] == playerXPosition && Element[1] > playerYPosition) {
-                                Element[1] -= HA;
-
-                            } else if (Element[0] < playerXPosition) {
-                                Element[0]++;
-                            } else if (Element[0] > playerXPosition) {
-                                Element[0]--;
+                            aiXmove();
+                            for (i = 1; i < wallsXY[level].length; i++) {
+                                if (Element[0] == wallsXY[level][i][0] && Element[1] == wallsXY[level][i][1]) { // if the players position is the same as the walls position then it will turn it back to its position befor hand.
+                                    Element[0] = aiXPast; //changes the poition to its previouse state
+                                    Element[1] = aiYPast; //changes the poition to its previouse state
+                                    aiYmove();
+                                }
                             }
-
 
                         } else {
-                            if (Element[1] == playerYPosition && Element[0] < playerXPosition) {
-                                Element[0]++;
-                            } else if (Element[1] == playerYPosition && Element[0] > playerXPosition) {
-                                Element[0]--;
-                            } else if (Element[1] < playerYPosition) {
-                                Element[1] += HA;
-                            } else if (Element[1] > playerYPosition) {
-                                Element[1] -= HA;
+                            aiYmove();
+                            for (i = 1; i < wallsXY[level].length; i++) {
+                                if (Element[0] == wallsXY[level][i][0] && Element[1] == wallsXY[level][i][1]) { // if the players position is the same as the walls position then it will turn it back to its position befor hand.
+                                    Element[0] = aiXPast; //changes the poition to its previouse state
+                                    Element[1] = aiYPast; //changes the poition to its previouse state
+                                    aiXmove();
+                                }
                             }
                         }
-
 
                         for (i = 1; i < wallsXY[level].length; i++) {
                             if (Element[0] == wallsXY[level][i][0] && Element[1] == wallsXY[level][i][1]) { // if the players position is the same as the walls position then it will turn it back to its position befor hand.
@@ -219,32 +223,16 @@
                         }
                         colorRect(grid[Element[0]][0], grid[Element[1]][1], horizontalsize, horizontalsize, 'rgb(1,1,1,1)');
                         if (playerXPosition == Element[0] && playerYPosition == Element[1]) { // if the players position is the same as the walls position then it will turn it back to its position befor hand.
-                            console.log('ded')
+                            console.log('ded');
+                            game = false;
                         }
 
                     } else {
                         Element[0] = 0;
                         Element[1] = 0;
                     }
-
-
                 });
-
-                //                imgLoad2(wallImg, wallsXY[level][aiXPast][2] * horizontalsize, wallsXY[level][aiYPast][3] * horizontalsize, horizontalsize, horizontalsize, grid[wallsXY[level][aiXPast][0]][0], grid[wallsXY[level][(aiYPast)][1]][1], horizontalsize, verticalsize);
-
-
-
             }
-
-            function difference(a, b) { // checks the difference in values
-                return Math.abs(a - b);
-            }
-
-
-
-
-
-
 
 
 
@@ -359,7 +347,7 @@
                     if (playerXPosition == wallsXY[level][i][0] && playerYPosition == wallsXY[level][i][1]) { // if the players position is the same as the walls position then it will turn it back to its position befor hand.
                         playerXPosition = wallCheckX; //changes the poition to its previouse state
                         playerYPosition = wallCheckY; //changes the poition to its previouse state
-                         gamerun = false;
+                        gamerun = false;
                     }
                 }
                 //                for (i = 1; i < wallsXY[level].length; i++) {
@@ -374,10 +362,10 @@
                 //                    }
                 //                }
             }
-            
-            
-            
-            
+
+
+
+
             //            var playeranimationtimer = 0;
             function drawPlayer() { // draws the player. sort of
                 imgLoad(floorImg, grid[wallCheckX][0], grid[wallCheckY][1], horizontalsize, verticalsize); //drwas the background on where the player was
@@ -403,6 +391,10 @@
                 }
             }
 
+            function difference(a, b) { // checks the difference in values
+                return Math.abs(a - b);
+            }
+
             function colorRect(x, y, w, h, c) { // function used to draw simple blocks with colour
                 canvasContext.fillStyle = c;
                 canvasContext.fillRect(x, y, w, h)
@@ -424,9 +416,11 @@
             //                        var finalColor = 'rgba(' + colors1 + ',' + colors2 + ',' + colors3 + ',1)'; 
             //                    grid.push(finalColor)
 
+//            var level = 2;
+                        var level = Math.floor((Math.random() * 5));
             // this is all the walls
             var wallsXY = [
-                [
+                [ //4levels
                     0,
                     [7, 7 * HA, 0, 4],
                     [8, 7 * HA, 0, 4],
@@ -453,6 +447,22 @@
                     [14, 6 * HA, 0, 4],
                     [13, 6 * HA, 0, 4],
                     [9, 7 * HA, 0, 4]
+                ],
+                [
+                    4,
+                    [3, 3 * HA, 0, 4],
+                    [3, 4 * HA, 0, 4],
+                    [4, 4 * HA, 0, 4],
+                    [5, 4 * HA, 0, 4],
+                    [6, 4 * HA, 0, 4],
+                    [7, 4 * HA, 0, 4],
+                    [8, 4 * HA, 0, 4],
+                    [9, 4 * HA, 0, 4],
+                    [10, 4 * HA, 0, 4],
+                    [11, 4 * HA, 0, 4],
+                    [11, 3 * HA, 0, 4],
+
+
                 ]
             ];
             var load = [2]; // this is a substitute for loading all the levels
@@ -464,11 +474,13 @@
                     VERTICAL_WALLS();
                     wallsXY[0].push([0, i * HA, 0, left], [HA - 1, i * HA, 0, right]);
                     wallsXY[1].push([0, i * HA, 0, left], [HA - 1, i * HA, 0, right]);
+                    wallsXY[2].push([0, i * HA, 0, left], [HA - 1, i * HA, 0, right]);
                 }
                 for (i = 0; i < HA; i++) {
                     HA_WALLS();
                     wallsXY[0].push([i, 0 * HA, 0, left], [i, (verticalAmount - 1) * HA, 0, right]);
                     wallsXY[1].push([i, 0 * HA, 0, left], [i, (verticalAmount - 1) * HA, 0, right]);
+                    wallsXY[2].push([i, 0 * HA, 0, left], [i, (verticalAmount - 1) * HA, 0, right]);
                 }
                 for (i = 0; i < verticalAmount; i++) {
                     VERTICAL_WALLS();
@@ -495,7 +507,7 @@
                     }
                 }
                 wallsXY.push(load);
-                load = [4];
+                load = [5];
 
             }
 
