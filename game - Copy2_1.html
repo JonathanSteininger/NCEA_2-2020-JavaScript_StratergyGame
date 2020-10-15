@@ -1,0 +1,1013 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>JavaScript</title>
+</head>
+
+<body>
+    <canvas id="gameCanvas" width="600" height="400">
+        <script>
+            var canvas, canvasContext;
+            window.onload = function() {
+                canvas = document.getElementById('gameCanvas');
+                canvasContext = canvas.getContext('2d');
+
+                document.addEventListener('keydown', keyPressed); // sets the event for the keypressed func 
+                document.addEventListener('keyup', keyReleased); // sets the event for the keyreleased func 
+
+                setInterval(
+                    mainloop, 1000 / 35); // starts the game loop
+
+                creatGrid(); // creates the grid for the entier game
+                loadLevels(); // creates all the levels walls
+                drawGrid(); //darws background once
+                enemyPositions.forEach(Element => {
+                    colorRect(grid[Element[0]][0], grid[Element[1]][1], horizontalsize, horizontalsize, 'rgb(1,1,1,1)');
+                });
+                drawWalls(); //draws walls onsce
+
+            }
+
+            function mainloop() {
+                if (game) {
+
+                    if (timerMove >= 5 && gamerun == false) { // makes it so theres a clean interuption to your movement
+
+                        playerMovement();
+
+                    } else {
+                        timerMove++;
+                    }
+                    if (gamerun == true) { // makes it so that other things only get drawn if you move. helps for future games. can be removed.
+                        var count56 = 0;
+                        enemyPositions.forEach(Element => {
+                            count56++;
+                            if (playerXPosition == Element[0] && playerYPosition == Element[1]) { // if the players position is the same as the walls position then it will turn it back to its position befor hand.
+                                playerXPosition = wallCheckX; //changes the poition to its previouse state
+                                playerYPosition = wallCheckY; //changes the poition to its previouse state
+                                delete enemyPositions[count56 - 1];
+                                enemyPositions = enemyPositions.filter(item => item !== undefined);
+                                imgLoad(floorImg, grid[Element[0]][0], grid[Element[1]][1], horizontalsize, verticalsize);
+                                moveFrame += 4;
+                            }
+                        });
+
+                        if (timer <= 3) { // sets the animation of th eplayers maovment
+                            if (movement == true) {
+                                imgLoad(floorImg, grid[playerXPosition][0], grid[playerYPosition][1], horizontalsize, verticalsize);
+                                drawPlayer(); //draws the player
+                            }
+                            timer++; // +1 to timer2
+                        } else {
+                            aitest2();
+                            runAI();
+
+
+                            drawPlayer();
+                            gamerun = false; // makes it that this function will only run after th eplayermovement function has run
+                            movement = true;
+                            timer = 0; //restets timer
+
+                        }
+
+
+                    } else {
+                        if (upKeyPressed == false && downKeyPressed == false && leftKeyPressed == false && rightKeyPressed == false) {
+                            if (timer2 >= 2) {
+
+                                imgLoad(floorImg, grid[playerXPosition][0], grid[playerYPosition][1], horizontalsize, verticalsize);
+                                imgLoad2(playerImgMain, timer3 * 40, frameY * 40, playerSpriteWidth, playerSpriteHeight, grid[playerXPosition][0], grid[playerYPosition][1], horizontalsize, verticalsize);
+                                if (timer3 >= 9) {
+                                    timer3 = 0;
+                                } else {
+                                    timer3++
+                                }
+                                timer2 = 0;
+                            } else {
+                                timer2++;
+                            }
+                        }
+                    }
+                    enemyPositions.forEach(Element => {
+                        colorRect(grid[Element[0]][0], grid[Element[1]][1], horizontalsize, horizontalsize, 'rgb(1,1,1,1)');
+                    });
+                } else {
+                    colorRect(0, 0, CanvasWidth, Canvasheight, 'rgb(1,1,1,1)')
+                }
+
+            }
+            //mainloop timers and ifs
+            var gamerun = false;
+            var movement = false;
+            var timerMove = 0;
+            var timer = 0;
+            var timer2 = 0;
+            var timer3 = 0;
+            var game = true;
+
+            //grid variables. try not to get odd numbers with the horiontalSize and verticalSize
+            var CanvasWidth = document.getElementById('gameCanvas').width;
+            var Canvasheight = document.getElementById('gameCanvas').height;
+            var HA = 15; // made this HA so theres not as much code for the coordinates for the walls.
+            var verticalAmount = 10;
+            var horizontalsize = (CanvasWidth / HA);
+            var verticalsize = (Canvasheight / verticalAmount);
+
+            //players current position and starting position
+            var playerXPosition = 2;
+            var playerYPosition = 7 * HA;
+
+            var playerSpriteHeight = verticalsize;
+            var playerSpriteWidth = horizontalsize;
+            var frameX = 2;
+            var frameY = 0;
+            var moveFrame = 1;
+
+            //player movement keys
+            const UP_KEY = 87;
+            const DOWN_KEY = 83;
+            const LEFT_KEY = 65;
+            const RIGHT_KEY = 68;
+            var upKeyPressed = false;
+            var downKeyPressed = false;
+            var leftKeyPressed = false;
+            var rightKeyPressed = false;
+
+            var floorImg = new Image();
+            floorImg.src = "img/floor.png";
+
+            var wallImg = new Image();
+            wallImg.src = "img/walls_top.png";
+
+            var playerImg = new Image();
+            playerImg.src = "img/player.png";
+
+            var playerImgMain = new Image();
+            playerImgMain.src = "img/main_player.png";
+
+            //                                    var level = 2;// this is to test spesific levels
+
+
+
+            // for the wall collision
+            var wallCheckY = playerYPosition;
+            var wallCheckX = playerXPosition;
+
+            function drawWalls() {
+                for (i = 1; i < wallsXY[level].length; i++) {
+                    imgLoad2(wallImg, wallsXY[level][i][2] * horizontalsize, wallsXY[level][i][3] * horizontalsize, horizontalsize, horizontalsize, grid[wallsXY[level][i][0]][0], grid[wallsXY[level][(i)][1]][1], horizontalsize, verticalsize);
+                }
+            }
+
+            var aiXPast = 0;
+            var aiYPast = 0;
+
+            var enemyPositions = [
+                [7, 1 * HA], //[x,y,1=alive/0=dead]
+                [7, 7 * HA], //[x,y,1=alive/0=dead]
+                [9, 1 * HA] //[x,y,1=alive/0=dead]
+            ];
+            var count22 = 0;
+            var elementcount2 = 0;
+
+            function runAI() {
+                elementcount2 = 0;
+                enemyPositions.forEach(Element => {
+                    elementcount2++;
+
+                    var aimove = true;
+
+                    for (hh = 0; hh < closedList.length; hh++) {
+                        if (closedList[elementcount2 - 1][routChoose[elementcount2 - 1]][1][0] == closedList[hh][routChoose[hh]][1][0] && closedList[elementcount2 - 1][routChoose[elementcount2 - 1]][1][1] == closedList[hh][routChoose[hh]][1][1] && elementcount2 - 1 !== hh && hh < (elementcount2 - 1)) {
+                            aimove = false;
+                        }
+                    }
+                    //                    for (hh = 0; hh < enemyPositions.length; hh++){
+                    //                        if (Element[0] == enemyPositions[hh][0] && Element[1] == enemyPositions[hh][1] && hh !== (elementcount2 - 1)){
+                    //                           aimove = false; 
+                    //                        }
+                    //                    }
+
+
+
+                    if (aimove == true) {
+                        aiXPast = Element[0];
+                        aiYPast = Element[1];
+                        Element[0] = closedList[elementcount2 - 1][routChoose[elementcount2 - 1]][count22][0];
+                        Element[1] = closedList[elementcount2 - 1][routChoose[elementcount2 - 1]][count22][1] * HA;
+                        imgLoad(floorImg, grid[aiXPast][0], grid[aiYPast][1], horizontalsize, verticalsize);
+                        colorRect(grid[Element[0]][0], grid[Element[1]][1], horizontalsize, horizontalsize, 'rgb(1,1,1,1)');
+                    }
+
+                    console.log('in');
+                });
+                count22++;
+                console.log('out');
+
+
+
+
+                //                enemyPositions.forEach(Element => {	
+                //                    function aiYmove() {
+                //                        if (Element[1] == playerYPosition && Element[0] < playerXPosition) {
+                //                            Element[0]++;
+                //                        } else if (Element[1] == playerYPosition && Element[0] > playerXPosition) {
+                //                            Element[0]--;
+                //                        } else if (Element[1] < playerYPosition) {
+                //                            Element[1] += HA;
+                //                        } else if (Element[1] > playerYPosition) {
+                //                            Element[1] -= HA;
+                //                        }
+                //                    }
+                //
+                //                    function aiXmove() {
+                //                        if (Element[0] == playerXPosition && Element[1] < playerYPosition) {
+                //                            Element[1] += HA;
+                //                        } else if (Element[0] == playerXPosition && Element[1] > playerYPosition) {
+                //                            Element[1] -= HA;
+                //
+                //                        } else if (Element[0] < playerXPosition) {
+                //                            Element[0]++;
+                //                        } else if (Element[0] > playerXPosition) {
+                //                            Element[0]--;
+                //                        }
+                //                    }
+                //
+                //                    if (Element[2] == 1) {
+                //                        aiXPast = Element[0];
+                //                        aiYPast = Element[1];
+                //                        if (difference(Element[0], playerXPosition) >= (difference(Element[1], playerYPosition) / HA)) {
+                //                            aiXmove();
+                //                            for (i = 1; i < wallsXY[level].length; i++) {
+                //                                if (Element[0] == wallsXY[level][i][0] && Element[1] == wallsXY[level][i][1]) { // if the players position is the same as the walls position then it will turn it back to its position befor hand.
+                //                                    Element[0] = aiXPast; //changes the poition to its previouse state
+                //                                    Element[1] = aiYPast; //changes the poition to its previouse state
+                //                                    aiYmove();
+                //                                }
+                //                            }
+                //
+                //                        } else {
+                //                            aiYmove();
+                //                            for (i = 1; i < wallsXY[level].length; i++) {
+                //                                if (Element[0] == wallsXY[level][i][0] && Element[1] == wallsXY[level][i][1]) { // if the players position is the same as the walls position then it will turn it back to its position befor hand.
+                //                                    Element[0] = aiXPast; //changes the poition to its previouse state
+                //                                    Element[1] = aiYPast; //changes the poition to its previouse state
+                //                                    aiXmove();
+                //                                }
+                //                            }
+                //                        }
+                //
+                //                        for (i = 1; i < wallsXY[level].length; i++) {
+                //                            if (Element[0] == wallsXY[level][i][0] && Element[1] == wallsXY[level][i][1]) { // if the players position is the same as the walls position then it will turn it back to its position befor hand.
+                //                                Element[0] = aiXPast; //changes the poition to its previouse state
+                //                                Element[1] = aiYPast; //changes the poition to its previouse state
+                //                            }
+                //                        }
+                //
+                //                        if (Element[0] == aiXPast && Element[1] == aiYPast) {} else {
+                //                            imgLoad(floorImg, grid[aiXPast][0], grid[aiYPast][1], horizontalsize, verticalsize);
+                //                        }
+                //                        colorRect(grid[Element[0]][0], grid[Element[1]][1], horizontalsize, horizontalsize, 'rgb(1,1,1,1)');
+                //                        if (playerXPosition == Element[0] && playerYPosition == Element[1]) { // if the players position is the same as the walls position then it will turn it back to its position befor hand.
+                //                            console.log('ded');
+                //                            game = false;
+                //                        }
+                //
+                //                    } else {
+                //                        Element[0] = 0;
+                //                        Element[1] = 0;
+                //                    }
+                //                });
+            }
+
+
+            //            function drawAI() {
+            //
+            //                imgLoad(floorImg, grid[aiXPast][0], grid[aiYPast][1], horizontalsize, verticalsize);
+            //                colorRect(grid[enemyPositions[0][0]][0], grid[enemyPositions[0][1]][1], horizontalsize, horizontalsize, 'rgb(1,1,1,1)');
+            //
+            //
+            //            }
+
+
+
+            //            var f = g + h;
+            //            var g = 0;
+            //                    var test69 = wallsXY[level].every(function (e) {
+            //    return e[0] > 0;
+            //});
+
+            var closedList = [
+                []
+            ];
+            var failsafe = 0;
+            var elementCount = 0;
+
+            function aitest2() {
+                routChoose = [];
+                elementCount = 0;
+                closedList = []; //[[[[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2]],[[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2]]],[[[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2]],[[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2]]]]
+                for (kk = 0; kk < enemyPositions.length; kk++) {
+                    closedList.push([]);
+                }
+                count22 = 1;
+                enemyPositions.forEach(Element => {
+                    elementCount++;
+                    failsafe = 0;
+                    var checkArray = [
+                        [
+                            [Element[0], Element[1] / HA]
+                        ]
+
+                    ]
+                    var openList = [
+                        [
+                            [Element[0], Element[1] / HA]
+                        ]
+
+                    ];
+                    while (closedList[elementCount - 1].length <= 0 && failsafe < 90) { //just did this
+                        var stepOpenList = openList.length;
+                        failsafe++;
+                        for (i = 0; i < stepOpenList; i++) {
+                            var left = []; //f,g,h
+                            var right = []; //f,g,h
+                            var up = []; //f,g,h
+                            var down = [];
+                            var a = openList[i]; //[[10,1],[11,1],[12,1],[13,1]]//[[9,1]]
+                            var b = a[a.length - 1]; //[13,1]//[9,1]
+                            var testLeft = true;
+                            var testRight = true;
+                            var testUp = true;
+                            var testDown = true;
+                            for (oo = 1; oo < wallsXY[level].length; oo++) {
+                                if (b[0] - 1 == 0) {
+                                    testLeft = false;
+                                } else if (b[0] - 1 == wallsXY[level][oo][0] && b[1] == (wallsXY[level][oo][1] / HA)) {
+                                    testLeft = false;
+                                }
+                                if (b[0] + 1 == HA) {
+                                    testRight = false;
+
+                                } else if (b[0] + 1 == wallsXY[level][oo][0] && b[1] == (wallsXY[level][oo][1] / HA)) {
+                                    testRight = false;
+                                }
+                                if (b[1] - 1 <= 0) {
+                                    testUp = false;
+
+                                } else if (b[0] == wallsXY[level][oo][0] && b[1] - 1 == (wallsXY[level][oo][1] / HA)) {
+                                    testUp = false;
+                                }
+                                if (b[1] + 1 >= verticalAmount) {
+                                    testDown = false;
+
+                                } else if (b[0] == wallsXY[level][oo][0] && b[1] + 1 == (wallsXY[level][oo][1] / HA)) {
+                                    testDown = false;
+                                }
+                            }
+                            if (testLeft == true) { //left
+                                Object.assign(left, openList[i])
+                                left.push([b[0] - 1, b[1]]);
+                            }
+                            if (testRight == true) { //right
+                                Object.assign(right, openList[i]);
+                                right.push([b[0] + 1, b[1]]);
+                            }
+                            if (testUp == true) { //up
+                                Object.assign(up, openList[i]);
+                                up.push([b[0], b[1] - 1]);
+                            }
+                            if (testDown == true) { //down
+                                Object.assign(down, openList[i]);
+                                down.push([b[0], b[1] + 1]); // [[10,1],[11,1],[12,1],[13,1],[b[0],b[1] + 1]]
+                            }
+                            var leftfalse = false;
+                            var rightfalse = false;
+                            var upfalse = false;
+                            var downfalse = false;
+                            for (l = 0; l < openList.length; l++) { //[[[1,1],[1,2]],[stuff,stuff]]
+                                for (c = 0; c < openList[l].length; c++) { //[[1,1],[1,2]]
+                                    if (testLeft == false) {
+                                        leftfalse = true;
+                                    } else if (left[left.length - 1][0] == openList[l][c][0] && left[left.length - 1][1] == openList[l][c][1]) {
+                                        leftfalse = true;
+                                    }
+                                    if (testRight == false) {
+                                        rightfalse = true;
+                                    } else if (right[right.length - 1][0] == openList[l][c][0] && right[right.length - 1][1] == openList[l][c][1]) {
+                                        rightfalse = true;
+                                    }
+                                    if (testUp == false) {
+                                        upfalse = true;
+                                    } else if (up[up.length - 1][0] == openList[l][c][0] && up[up.length - 1][1] == openList[l][c][1]) {
+                                        upfalse = true;
+                                    }
+                                    if (testDown == false) {
+                                        downfalse = true;
+                                    } else if (down[down.length - 1][0] == openList[l][c][0] && down[down.length - 1][1] == openList[l][c][1]) {
+                                        downfalse = true;
+                                    }
+                                }
+                            }
+                            for (l = 0; l < checkArray.length; l++) { //[[[1,1],[1,2]],[stuff,stuff]]
+                                for (c = 0; c < checkArray[l].length; c++) { //[[1,1],[1,2]]
+                                    if (testLeft == false) {
+                                        leftfalse = true;
+                                    } else if (left[left.length - 1][0] == checkArray[l][c][0] && left[left.length - 1][1] == checkArray[l][c][1]) {
+                                        leftfalse = true;
+                                    }
+                                    if (testRight == false) {
+                                        rightfalse = true;
+                                    } else if (right[right.length - 1][0] == checkArray[l][c][0] && right[right.length - 1][1] == checkArray[l][c][1]) {
+                                        rightfalse = true;
+                                    }
+                                    if (testUp == false) {
+                                        upfalse = true;
+                                    } else if (up[up.length - 1][0] == checkArray[l][c][0] && up[up.length - 1][1] == checkArray[l][c][1]) {
+                                        upfalse = true;
+                                    }
+                                    if (testDown == false) {
+                                        downfalse = true;
+                                    } else if (down[down.length - 1][0] == checkArray[l][c][0] && down[down.length - 1][1] == checkArray[l][c][1]) {
+                                        downfalse = true;
+                                    }
+                                }
+                            }
+                            //                            console.log(openList.length)
+                            //                            if (closedList[0].length > 0 && elementCount > 1 && openList.length > 0) {
+                            //                                for (jj = 0; jj < closedList.length; jj++) {
+                            //                                    if (testLeft == true) {
+                            //                                        if (left[i+1][0] == closedList[jj][routChoose[jj]][1][0] && left[i+1][1] == closedList[jj][routChoose[jj]][1][1]) {
+                            //                                            leftfalse = true;
+                            //                                        }
+                            //                                    }
+                            //                                    if (testRight == true) {
+                            //                                        if (right[i+1][0] == closedList[jj][routChoose[jj]][1][0] && right[i+1][1] == closedList[jj][routChoose[jj]][1][1]) {
+                            //                                            rightfalse = true;
+                            //                                        }
+                            //                                    }
+                            //                                    if (testUp == true) {
+                            //                                        if (up[i+1][0] == closedList[jj][routChoose[jj]][1][0] && up[i+1][1] == closedList[jj][routChoose[jj]][1][1]) {
+                            //                                            upfalse = true;
+                            //                                        }
+                            //                                    }
+                            //                                    if (testDown == true) {
+                            //                                        if (down[i+1][0] == closedList[jj][routChoose[jj]][1][0] && down[i+1][1] == closedList[jj][routChoose[jj]][1][1]) {
+                            //                                            downfalse = true;
+                            //                                        }
+                            //                                    }
+                            //                                }
+                            //                            }
+
+
+
+
+                            if (leftfalse == false) {
+                                if (left[left.length - 1][0] == playerXPosition && left[left.length - 1][1] == playerYPosition / HA) {
+                                    closedList[elementCount - 1].push(left);
+                                } else {
+                                    openList.push(left);
+                                }
+                            }
+                            if (rightfalse == false) {
+                                if (right[right.length - 1][0] == playerXPosition && right[right.length - 1][1] == playerYPosition / HA) {
+                                    closedList[elementCount - 1].push(right);
+                                } else {
+                                    openList.push(right);
+                                }
+                            }
+                            if (upfalse == false) {
+                                if (up[up.length - 1][0] == playerXPosition && up[up.length - 1][1] == playerYPosition / HA) {
+                                    closedList[elementCount - 1].push(up);
+                                } else {
+                                    openList.push(up);
+                                }
+                            }
+                            if (downfalse == false) {
+                                if (down[down.length - 1][0] == playerXPosition && down[down.length - 1][1] == playerYPosition / HA) {
+                                    closedList[elementCount - 1].push(down);
+                                } else {
+                                    openList.push(down);
+                                }
+                            }
+                        } //for end
+
+                        for (u = 0; u < stepOpenList; u++) {
+                            checkArray.push(openList[u]);
+                            delete openList[u];
+                        }
+                        openList = openList.filter(item => item !== undefined);
+                    } //while end
+                    routChoose.push(Math.floor(Math.random() * closedList[elementCount - 1].length));
+                });
+            } //func end
+            var routChoose = [];
+
+
+
+
+
+
+            //end
+            //                    } else {
+            //                        closedList.push(openList[openList.length]);
+            //                        delete openList[openList.length];
+            //                    }
+
+            //                    if (test55(ftemporaryLocationX - 1, ftemporaryLocationY) == true) { //left
+            //                        left.push((g + 1) + (difference((ftemporaryLocationX - 1), playerXPosition) + difference(ftemporaryLocationY, (playerYPosition / HA))), (g + 1), (difference((ftemporaryLocationX - 1), playerXPosition) + difference(ftemporaryLocationY, (playerYPosition / HA))));
+            //                    }else{
+            //                        left.push(100,10,10);
+            //                    }
+            //                    if (test55(ftemporaryLocationX + 1, ftemporaryLocationY) == true) { //right
+            //                        right.push((g + 1) + (difference((ftemporaryLocationX + 1), playerXPosition) + difference(ftemporaryLocationY, (playerYPosition / HA))), (g + 1), (difference((ftemporaryLocationX + 1), playerXPosition) + difference(ftemporaryLocationY, (playerYPosition / HA))));
+            //                    }else{
+            //                        right.push(100,10,10);
+            //                    }
+            //                    if (test55(ftemporaryLocationX, ftemporaryLocationY - 1) == true) { //up
+            //                        up.push((g + 1) + (difference((ftemporaryLocationX), playerXPosition) + difference(ftemporaryLocationY - 1, (playerYPosition / HA))), (g + 1), (difference((ftemporaryLocationX), playerXPosition) + difference(ftemporaryLocationY - 1, (playerYPosition / HA))));
+            //                    }else{
+            //                        up.push(100,10,10);
+            //                    }
+            //                    if (test55(ftemporaryLocationX, ftemporaryLocationY + 1) == true) { //down
+            //                        down.push((g + 1) + (difference((ftemporaryLocationX), playerXPosition) + difference(ftemporaryLocationY + 1, (playerYPosition / HA))), (g + 1), (difference((ftemporaryLocationX), playerXPosition) + difference(ftemporaryLocationY + 1, (playerYPosition / HA))));
+            //                    }else{
+            //                        down.push(100,10,10);
+            //                    }
+            //                    console.log(left);
+            //                    console.log(right);
+            //                    console.log(up);
+            //                    console.log(down);
+
+
+
+
+            //                }
+            //
+            //            }
+
+
+            //            function lengthlist(x, y) {
+            //                var trip = true;
+            //                for (po = 0; po < openList.length; po++) {
+            //                    if (x == openList[po][openList[po].length-1][0] && y == openList[po][openList[po].length-1][1]) {
+            //                        trip = false;
+            //                        
+            //                        console.log("this");
+            //                    }
+            //                }
+            //                if (trip == true) {
+            //                    return true;
+            //
+            //                }else{
+            //                    return false;
+            //                }
+            //            }
+
+
+
+            //            function testAllWalls(x){
+            //                for (l = 1; l < wallsXY[level].length; l++) {
+            //                    
+            //                    
+            //                    x = wallsXY
+            //                    
+            //                }
+            //            }
+
+
+
+
+
+
+
+            //            var resultlength = [];
+            //            var route = [];
+            //            var results = [];
+            //            var checks = 1000;
+            //            var maxLength = 200;
+            //            var reeed = 0;
+            //            var wallremove = false;
+            //
+            //            function test() {
+            //
+            //                for (i = 0; i < checks; i++) {
+            //                    var treees = [];
+            //                    var temporaryLocationX = enemyPositions[0][0];
+            //                    var temporaryLocationY = enemyPositions[0][1];
+            //                    var f = 0;
+            //                    while (temporaryLocationX !== playerXPosition && f < maxLength || temporaryLocationY !== playerYPosition && f < maxLength) {
+            //                        f++;
+            //                        reeed = Math.floor(Math.random() * 4);
+            //                        var tempx = temporaryLocationX;
+            //                        var tempy = temporaryLocationY;
+            //                        if (reeed == 0) {
+            //                            temporaryLocationX--;
+            //                        }
+            //                        if (reeed == 1) {
+            //                            temporaryLocationX++;
+            //                        }
+            //                        if (reeed == 2) {
+            //                            temporaryLocationY -= HA;
+            //                        }
+            //                        if (reeed == 3) {
+            //                            temporaryLocationY += HA;
+            //                        }
+            //                        for (c = 1; c < wallsXY[level].length; c++) {
+            //                            if (temporaryLocationX == wallsXY[level][c][0] && temporaryLocationY == wallsXY[level][c][1]) { // if the players position is the same as the walls position then it will turn it back to its position befor hand.
+            //                                temporaryLocationX = tempx; //changes the poition to its previouse state
+            //                                temporaryLocationY = tempy; //changes the poition to its previouse state
+            //                                wallremove = true;
+            //                                c = wallsXY[level].length;
+            //                            }
+            //                        }
+            //                        if (wallremove == false) {
+            //
+            //                            treees.push(reeed);
+            //                        } else {
+            //                            wallremove = false;
+            //                        }
+            //                    }
+            //                    results.push(treees);
+            //                }
+            //                for (k = 0; k < checks; k++) {
+            //                    resultlength.push(results[k].length);
+            //                }
+            //
+            //                for (d = 0; d < checks; d++) {
+            //                    if (results[d].length == min(resultlength)) {
+            //                        route.push(results[d]);
+            //                    }
+            //
+            //
+            //                }
+            //
+            //            }
+
+            function min(input) {
+                if (toString.call(input) !== "[object Array]")
+                    return false;
+                return Math.min.apply(null, input);
+            }
+
+
+
+
+            function keyPressed(evt) { /// had to put multiple so there is no order issue for the movement. helps it stop feeling sticky.
+
+                if (evt.keyCode == UP_KEY && downKeyPressed == false && leftKeyPressed == false && rightKeyPressed == false) {
+                    upKeyPressed = true;
+
+                } else {
+                    upKeyPressed = false;
+                }
+                if (evt.keyCode == DOWN_KEY && upKeyPressed == false && leftKeyPressed == false && rightKeyPressed == false) {
+                    downKeyPressed = true;
+
+                } else {
+                    downKeyPressed = false;
+                }
+                if (evt.keyCode == RIGHT_KEY && downKeyPressed == false && leftKeyPressed == false && upKeyPressed == false) {
+                    rightKeyPressed = true;
+
+                } else {
+                    rightKeyPressed = false;
+                }
+                if (evt.keyCode == LEFT_KEY && downKeyPressed == false && upKeyPressed == false && rightKeyPressed == false) {
+                    leftKeyPressed = true;
+
+
+                } else {
+                    leftKeyPressed = false;
+                }
+                if (evt.keyCode == UP_KEY && downKeyPressed == false && leftKeyPressed == false && rightKeyPressed == false) {
+                    upKeyPressed = true;
+
+                } else {
+                    upKeyPressed = false;
+                }
+                if (evt.keyCode == DOWN_KEY && upKeyPressed == false && leftKeyPressed == false && rightKeyPressed == false) {
+                    downKeyPressed = true;
+
+                } else {
+                    downKeyPressed = false;
+                }
+                if (evt.keyCode == RIGHT_KEY && downKeyPressed == false && leftKeyPressed == false && upKeyPressed == false) {
+                    rightKeyPressed = true;
+
+                } else {
+                    rightKeyPressed = false;
+                }
+
+
+            }
+
+            function keyReleased(evt) {
+
+                if (evt.keyCode == UP_KEY) {
+                    upKeyPressed = false;
+                }
+                if (evt.keyCode == DOWN_KEY) {
+                    downKeyPressed = false;
+                }
+                if (evt.keyCode == RIGHT_KEY) {
+                    rightKeyPressed = false;
+                }
+                if (evt.keyCode == LEFT_KEY) {
+                    leftKeyPressed = false;
+                }
+
+            }
+
+            //            function Attack() {
+            //                if (hitUpKeyPressed == true) {
+            //                    colorRect(grid[playerXPosition][0], grid[playerYPosition - HA][1], horizontalsize, verticalsize, 'rgb(1,1,1,1)');
+            //
+            //                    gamerun = true; // lets the mainloop draw the rest of the game
+            //                }
+            //            }
+
+            function playerMovement() { // this changes the player's position
+                //use + or - 10 to move up or down.
+                // use =  or - 1 to mave left to right.
+                //                Attack();
+                wallCheckY = playerYPosition; // to remember past Yposition for later
+                wallCheckX = playerXPosition; // to remember past Xposition for later
+
+                if (upKeyPressed == true && timerMove >= 5) {
+                    playerYPosition -= HA;
+                    gamerun = true; // lets the mainloop draw the rest of the game
+                    timerMove = 0; // resets the timer for next move
+                    moveFrame = 3;
+                    //                    aitest2();
+                }
+                if (downKeyPressed == true && timerMove >= 5) {
+                    playerYPosition += HA;
+                    gamerun = true; // lets the mainloop draw the rest of the game
+                    timerMove = 0; // resets the timer for next move
+                    moveFrame = 4;
+                    //                    aitest2();
+                }
+                if (leftKeyPressed == true && timerMove >= 5) {
+                    playerXPosition -= 1;
+                    gamerun = true; // lets the mainloop draw the rest of the game
+                    timerMove = 0; // resets the timer for next move
+                    moveFrame = 2;
+                    //                    aitest2();
+                }
+                if (rightKeyPressed == true && timerMove >= 5) {
+                    playerXPosition += 1;
+                    gamerun = true; // lets the mainloop draw the rest of the game
+                    timerMove = 0; // resets the timer for next move
+                    moveFrame = 1;
+                    //                    aitest2();
+                }
+
+                //                        console.log('run');
+                for (i = 1; i < wallsXY[level].length; i++) {
+                    if (playerXPosition == wallsXY[level][i][0] && playerYPosition == wallsXY[level][i][1]) { // if the players position is the same as the walls position then it will turn it back to its position befor hand.
+                        playerXPosition = wallCheckX; //changes the poition to its previouse state
+                        playerYPosition = wallCheckY; //changes the poition to its previouse state
+                        gamerun = false;
+                    }
+                }
+                //                for (i = 1; i < wallsXY[level].length; i++) {
+
+                //                }
+
+
+                //                for (c = 0; c < wallsXY.length; c++) { // this checks all the walls that are in the wallsXY array.
+                //                    if (playerXPosition == wallsXY[c][0] && playerYPosition == wallsXY[c][1]) { // if the players position is the same as the walls position then it will turn it back to its position befor hand.
+                //                        playerXPosition = wallCheckX; //changes the poition to its previouse state
+                //                        playerYPosition = wallCheckY; //changes the poition to its previouse state
+                //                    }
+                //                }
+            }
+
+
+
+
+            //            var playeranimationtimer = 0;
+            function drawPlayer() { // draws the player. sort of
+                imgLoad(floorImg, grid[wallCheckX][0], grid[wallCheckY][1], horizontalsize, verticalsize); //drwas the background on where the player was
+                imgLoad(floorImg, grid[playerXPosition][0], grid[playerYPosition][1], horizontalsize, verticalsize); //drwas the background on where the player will be
+                imgLoad2(playerImgMain, timer * 40, moveFrame * 40, playerSpriteWidth, playerSpriteHeight, grid[wallCheckX][0] + (timer * 10 * (playerXPosition - wallCheckX)), grid[wallCheckY][1] + (timer * 10 * ((playerYPosition - wallCheckY) / HA)), horizontalsize, verticalsize); // draws in bettween pictures of the player. to make it feel smoother
+            }
+
+            var grid = []; // the array for the grids
+
+            function creatGrid() { // creates the coordinates for all the blocks
+                for (var c = 0; c < verticalAmount; c++) {
+                    for (var i = 0; i < HA; i++) {
+                        grid.push([(horizontalsize * (i)), (verticalsize * (c))]);
+                    }
+                }
+                //                console.log(grid); // to see all the coordinates
+            }
+
+            function drawGrid() { // draws all the black squares/background
+                for (c = 0; c < grid.length; c++) {
+                    //                    colorRect(grid[c][0], grid[c][1], horizontalsize, verticalsize, "rgba(1,1,1,1)");
+                    imgLoad(floorImg, grid[c][0], grid[c][1], horizontalsize, verticalsize);
+                }
+            }
+
+            function difference(a, b) { // checks the difference in values
+                return Math.abs(a - b);
+            }
+
+            function colorRect(x, y, w, h, c) { // function used to draw simple blocks with colour
+                canvasContext.fillStyle = c;
+                canvasContext.fillRect(x, y, w, h)
+            }
+
+            function imgLoad(src, x, y, w, h) { // function to set up how it gets the data
+                canvasContext.drawImage(src, x, y, w, h);
+            }
+
+            function imgLoad2(src, x, y, w, h, dx, dy, dWidth, dHeight) { // function to set up how it gets the data
+                canvasContext.drawImage(src, x, y, w, h, dx, dy, dWidth, dHeight);
+            }
+
+            // end of imgLoad func
+            // this i wanted to keep just in case I need it
+            //                        var colors1 = Math.floor(Math.random()*255);
+            //                        var colors2 = Math.floor(Math.random()*255);
+            //                        var colors3 = Math.floor(Math.random()*255);
+            //                        var finalColor = 'rgba(' + colors1 + ',' + colors2 + ',' + colors3 + ',1)'; 
+            //                    grid.push(finalColor)
+
+            var level = 3;
+            //            var level = Math.floor((Math.random() * 5));
+            // this is all the walls
+            var wallsXY = [
+                [ //4levels
+                    0,
+                    [7, 7 * HA, 0, 4],
+                    [8, 7 * HA, 0, 4],
+                    [9, 7 * HA, 0, 4],
+                    [7, 9 * HA, 0, 4],
+                    [7, 8 * HA, 0, 4],
+                    [7, 9 * HA, 0, 4],
+                    [7, 9 * HA, 0, 4],
+                    [8, 9 * HA, 0, 4],
+                    [9, 9 * HA, 0, 4],
+                    [10, 9 * HA, 0, 4],
+                    [10, 9 * HA, 0, 4],
+                    [10, 8 * HA, 0, 4],
+                    [10, 7 * HA, 0, 4],
+                    [3, 8 * HA, 0, 4],
+                    [13, 8 * HA, 0, 4]
+                ],
+                [
+                    1, [9, 0 * HA, 0, 4],
+                    [10, 0 * HA, 0, 4],
+                    [10, 9 * HA, 0, 4],
+                    [10, 8 * HA, 0, 4],
+                    [10, 7 * HA, 0, 4],
+                    [14, 6 * HA, 0, 4],
+                    [13, 6 * HA, 0, 4],
+                    [9, 7 * HA, 0, 4]
+                ],
+                [
+                    4,
+                    [3, 3 * HA, 0, 4],
+                    [3, 4 * HA, 0, 4],
+                    [4, 4 * HA, 0, 4],
+                    [5, 4 * HA, 0, 4],
+                    [6, 4 * HA, 0, 4],
+                    [7, 4 * HA, 0, 4],
+                    [8, 4 * HA, 0, 4],
+                    [9, 4 * HA, 0, 4],
+                    [10, 4 * HA, 0, 4],
+                    [11, 4 * HA, 0, 4],
+                    [11, 3 * HA, 0, 4],
+                ],
+                [
+                    5,
+                    [3, 1 * HA, 0, 4],
+                    [3, 2 * HA, 0, 4],
+                    [3, 2 * HA, 0, 4],
+                    [4, 2 * HA, 0, 4],
+                    [5, 2 * HA, 0, 4],
+                    [6, 2 * HA, 0, 4],
+                    [7, 2 * HA, 0, 4],
+                    //                    [8, 2 * HA, 0, 4], //
+                    [9, 2 * HA, 0, 4],
+                    [10, 2 * HA, 0, 4],
+                    [11, 2 * HA, 0, 4],
+                    [12, 2 * HA, 0, 4],
+                    [12, 3 * HA, 0, 4],
+                    [12, 4 * HA, 0, 4],
+                    [12, 5 * HA, 0, 4],
+                    [12, 6 * HA, 0, 4],
+                    [12, 7 * HA, 0, 4],
+                    [12, 7 * HA, 0, 4],
+                    [12, 7 * HA, 0, 4],
+                    [12, 7 * HA, 0, 4],
+                    [12, 7 * HA, 0, 4],
+                    [12, 7 * HA, 0, 4],
+                    [12, 7 * HA, 0, 4],
+                    [12, 7 * HA, 0, 4],
+                    [12, 7 * HA, 0, 4],
+                    [12, 7 * HA, 0, 4],
+                    [12, 7 * HA, 0, 4],
+                    [10, 8 * HA, 0, 4],
+                    [10, 7 * HA, 0, 4],
+                    [10, 6 * HA, 0, 4],
+                    [10, 5 * HA, 0, 4],
+                    [10, 4 * HA, 0, 4],
+                    //                    [8, 3 * HA, 0, 4], //
+                    [8, 7 * HA, 0, 4],
+                    [8, 6 * HA, 0, 4],
+                    [8, 5 * HA, 0, 4],
+                    [8, 4 * HA, 0, 4],
+                    [6, 8 * HA, 0, 4],
+                    [6, 7 * HA, 0, 4],
+                    [6, 6 * HA, 0, 4],
+                    [6, 5 * HA, 0, 4],
+                    [6, 4 * HA, 0, 4]
+                ]
+            ];
+            var load = [2]; // this is a substitute for loading all the levels
+            var left = 0;
+            var right = 1;
+
+            function loadLevels() { // creates basic walls like straight lines
+                for (i = 0; i < verticalAmount; i++) {
+                    VERTICAL_WALLS();
+                    wallsXY[0].push([0, i * HA, 0, left], [HA - 1, i * HA, 0, right]);
+                    wallsXY[1].push([0, i * HA, 0, left], [HA - 1, i * HA, 0, right]);
+                    wallsXY[2].push([0, i * HA, 0, left], [HA - 1, i * HA, 0, right]);
+                    wallsXY[3].push([0, i * HA, 0, left], [HA - 1, i * HA, 0, right]);
+                }
+                for (i = 0; i < HA; i++) {
+                    HA_WALLS();
+                    wallsXY[0].push([i, 0 * HA, 0, left], [i, (verticalAmount - 1) * HA, 0, right]);
+                    wallsXY[1].push([i, 0 * HA, 0, left], [i, (verticalAmount - 1) * HA, 0, right]);
+                    wallsXY[2].push([i, 0 * HA, 0, left], [i, (verticalAmount - 1) * HA, 0, right]);
+                    wallsXY[3].push([i, 0 * HA, 0, left], [i, (verticalAmount - 1) * HA, 0, right]);
+                }
+                for (i = 0; i < verticalAmount; i++) {
+                    VERTICAL_WALLS();
+                    load.push([0, i * HA, 0, left], [HA - 1, i * HA, 0, right]);
+                }
+                for (i = 0; i < HA; i++) {
+                    HA_WALLS();
+                    load.push([i, 0 * HA, 0, left], [i, (verticalAmount - 1) * HA, 0, right]);
+                }
+                wallsXY.push(load);
+                load = [3]; // clears the array for the next level
+                for (i = 0; i < HA; i++) {
+                    HA_WALLS();
+                    load.push([i, 0 * HA, 0, left], [i, (verticalAmount - 1) * HA, 0, right]);
+                }
+                for (i = 0; i < verticalAmount; i++) {
+                    VERTICAL_WALLS();
+                    load.push([0, i * HA, 0, left], [HA - 1, i * HA, 0, right]);
+                }
+                for (c = Math.floor((verticalAmount / 4) * 1); c < Math.floor((verticalAmount / 4) * 3 + 1); c++) {
+
+                    for (i = Math.floor(HA / 4); i < Math.floor((HA / 4) * 3 + 1); i++) {
+                        load.push([i, c * HA, 0, 4]);
+                    }
+                }
+                wallsXY.push(load);
+                load = [5];
+
+            }
+
+            function VERTICAL_WALLS() {
+                left = 0;
+                right = 1;
+                if (i == 0) {
+                    left = 5;
+                    right = 6;
+                }
+                if (i == verticalAmount - 1) {
+                    left = 7;
+                    right = 8;
+                }
+            }
+
+            function HA_WALLS() {
+                left = 2;
+                right = 3;
+                if (i == 0) {
+                    left = 5;
+                    right = 7;
+                }
+                if (i == HA - 1) {
+                    left = 6;
+                    right = 8;
+                }
+            }
+
+        </script>
+    </canvas>
+
+
+</body>
+
+</html>
