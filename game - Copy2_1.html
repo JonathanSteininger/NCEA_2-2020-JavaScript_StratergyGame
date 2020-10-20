@@ -12,47 +12,41 @@
             window.onload = function() {
                 canvas = document.getElementById('gameCanvas');
                 canvasContext = canvas.getContext('2d');
-
                 document.addEventListener('keydown', keyPressed); // sets the event for the keypressed func 
                 document.addEventListener('keyup', keyReleased); // sets the event for the keyreleased func 
-
                 setInterval(
                     mainloop, 1000 / 35); // starts the game loop
-
                 creatGrid(); // creates the grid for the entier game
                 loadLevels(); // creates all the levels walls
-                drawGrid(); //darws background once
-                enemyPositions.forEach(Element => {
-                    colorRect(grid[Element[0]][0], grid[Element[1]][1], horizontalsize, horizontalsize, 'rgb(1,1,1,1)');
-                });
-                drawWalls(); //draws walls onsce
-
+                levelsetter();
             }
 
             function mainloop() {
-                if (game) {
-
+                if (game && defeat == false) {
                     if (timerMove >= 5 && gamerun == false) { // makes it so theres a clean interuption to your movement
-
                         playerMovement();
-
                     } else {
                         timerMove++;
                     }
                     if (gamerun == true) { // makes it so that other things only get drawn if you move. helps for future games. can be removed.
                         var count56 = 0;
-                        enemyPositions.forEach(Element => {
+                        enemyPositions[level].forEach(Element => {
                             count56++;
                             if (playerXPosition == Element[0] && playerYPosition == Element[1]) { // if the players position is the same as the walls position then it will turn it back to its position befor hand.
                                 playerXPosition = wallCheckX; //changes the poition to its previouse state
                                 playerYPosition = wallCheckY; //changes the poition to its previouse state
-                                delete enemyPositions[count56 - 1];
-                                enemyPositions = enemyPositions.filter(item => item !== undefined);
-                                imgLoad(floorImg, grid[Element[0]][0], grid[Element[1]][1], horizontalsize, verticalsize);
+                                if (Element[2] == 1) {
+                                    wallsXY[level].push([Element[0], Element[1]]);
+                                    imgLoad(floorImg, grid[Element[0]][0], grid[Element[1]][1], horizontalsize, verticalsize);
+                                    imgLoad2(wallImg, 0 * horizontalsize, 4 * horizontalsize, horizontalsize, horizontalsize, grid[Element[0]][0], grid[Element[1]][1], horizontalsize, verticalsize);
+                                } else {
+                                    imgLoad(floorImg, grid[Element[0]][0], grid[Element[1]][1], horizontalsize, verticalsize);
+                                }
+                                delete enemyPositions[level][count56 - 1];
+                                enemyPositions[level] = enemyPositions[level].filter(item => item !== undefined);
                                 moveFrame += 4;
                             }
                         });
-
                         if (timer <= 3) { // sets the animation of th eplayers maovment
                             if (movement == true) {
                                 imgLoad(floorImg, grid[playerXPosition][0], grid[playerYPosition][1], horizontalsize, verticalsize);
@@ -62,16 +56,11 @@
                         } else {
                             aitest2();
                             runAI();
-
-
                             drawPlayer();
                             gamerun = false; // makes it that this function will only run after th eplayermovement function has run
                             movement = true;
                             timer = 0; //restets timer
-
                         }
-
-
                     } else {
                         if (upKeyPressed == false && downKeyPressed == false && leftKeyPressed == false && rightKeyPressed == false) {
                             if (timer2 >= 2) {
@@ -89,11 +78,18 @@
                             }
                         }
                     }
-                    enemyPositions.forEach(Element => {
-                        colorRect(grid[Element[0]][0], grid[Element[1]][1], horizontalsize, horizontalsize, 'rgb(1,1,1,1)');
+                    enemyPositions[level].forEach(Element => {
+                        if (Element[2] == 0) {
+
+                            colorRect(grid[Element[0]][0] + 2, grid[Element[1]][1] + 2, horizontalsize - 4, horizontalsize - 4, 'rgb(1,1,1,1)');
+                        } else if (Element[2] == 1) {
+                            colorRect(grid[Element[0]][0] + 2, grid[Element[1]][1] + 2, horizontalsize - 4, horizontalsize - 4, 'rgb(100,1,1,1)');
+
+                        }
                     });
                 } else {
-                    colorRect(0, 0, CanvasWidth, Canvasheight, 'rgb(1,1,1,1)')
+                    //                    colorRect(0, 0, CanvasWidth, Canvasheight, 'rgb(1,1,1,1)')
+                    colorRect(grid[playerXPosition][0], grid[playerYPosition][1], horizontalsize, verticalsize, 'rgb(250,1,1,1)');
                 }
 
             }
@@ -115,8 +111,8 @@
             var verticalsize = (Canvasheight / verticalAmount);
 
             //players current position and starting position
-            var playerXPosition = 2;
-            var playerYPosition = 7 * HA;
+            var playerXPosition = 3;
+            var playerYPosition = 8 * HA;
 
             var playerSpriteHeight = verticalsize;
             var playerSpriteWidth = horizontalsize;
@@ -136,20 +132,12 @@
 
             var floorImg = new Image();
             floorImg.src = "img/floor.png";
-
             var wallImg = new Image();
-            wallImg.src = "img/walls_top.png";
-
+            wallImg.src = "img/walls_v4.png";
             var playerImg = new Image();
             playerImg.src = "img/player.png";
-
             var playerImgMain = new Image();
             playerImgMain.src = "img/main_player.png";
-
-            //                                    var level = 2;// this is to test spesific levels
-
-
-
             // for the wall collision
             var wallCheckY = playerYPosition;
             var wallCheckX = playerXPosition;
@@ -157,147 +145,143 @@
             function drawWalls() {
                 for (i = 1; i < wallsXY[level].length; i++) {
                     imgLoad2(wallImg, wallsXY[level][i][2] * horizontalsize, wallsXY[level][i][3] * horizontalsize, horizontalsize, horizontalsize, grid[wallsXY[level][i][0]][0], grid[wallsXY[level][(i)][1]][1], horizontalsize, verticalsize);
+                    for (pp = 0; pp < wallsXY[level][i][5].length; pp++) {
+
+                        imgLoad2(wallImg, wallsXY[level][i][5][pp] * horizontalsize, wallsXY[level][i][3] * horizontalsize, horizontalsize, horizontalsize, grid[wallsXY[level][i][0]][0], grid[wallsXY[level][(i)][1]][1], horizontalsize, verticalsize);
+
+                    }
                 }
             }
 
-            var aiXPast = 0;
-            var aiYPast = 0;
-
-            var enemyPositions = [
-                [7, 1 * HA], //[x,y,1=alive/0=dead]
-                [7, 7 * HA], //[x,y,1=alive/0=dead]
-                [9, 1 * HA] //[x,y,1=alive/0=dead]
-            ];
-            var count22 = 0;
-            var elementcount2 = 0;
-
-            function runAI() {
-                elementcount2 = 0;
-                enemyPositions.forEach(Element => {
-                    elementcount2++;
-
-                    var aimove = true;
-
-                    for (hh = 0; hh < closedList.length; hh++) {
-                        if (closedList[elementcount2 - 1][routChoose[elementcount2 - 1]][1][0] == closedList[hh][routChoose[hh]][1][0] && closedList[elementcount2 - 1][routChoose[elementcount2 - 1]][1][1] == closedList[hh][routChoose[hh]][1][1] && elementcount2 - 1 !== hh && hh < (elementcount2 - 1)) {
-                            aimove = false;
-                        }
+            function levelsetter() {
+                drawGrid(); //darws background once
+                wallsXY = JSON.parse(JSON.stringify(wallsStartPoss));
+                drawWalls(); //draws walls onsce
+                //                Object.assign(enemyPositions, enemyStartPos);
+                enemyPositions = JSON.parse(JSON.stringify(enemyStartPos));
+                enemyPositions[level].forEach(Element => {
+                    if (Element[2] == 0) {
+                        colorRect(grid[Element[0]][0] + 2, grid[Element[1]][1] + 2, horizontalsize - 4, horizontalsize - 4, 'rgb(1,1,1,1)');
+                    } else if (Element[2] == 1) {
+                        colorRect(grid[Element[0]][0] + 2, grid[Element[1]][1] + 2, horizontalsize - 4, horizontalsize - 4, 'rgb(100,1,1,1)');
                     }
-                    //                    for (hh = 0; hh < enemyPositions.length; hh++){
-                    //                        if (Element[0] == enemyPositions[hh][0] && Element[1] == enemyPositions[hh][1] && hh !== (elementcount2 - 1)){
-                    //                           aimove = false; 
-                    //                        }
-                    //                    }
-
-
-
-                    if (aimove == true) {
-                        aiXPast = Element[0];
-                        aiYPast = Element[1];
-                        Element[0] = closedList[elementcount2 - 1][routChoose[elementcount2 - 1]][count22][0];
-                        Element[1] = closedList[elementcount2 - 1][routChoose[elementcount2 - 1]][count22][1] * HA;
-                        imgLoad(floorImg, grid[aiXPast][0], grid[aiYPast][1], horizontalsize, verticalsize);
-                        colorRect(grid[Element[0]][0], grid[Element[1]][1], horizontalsize, horizontalsize, 'rgb(1,1,1,1)');
-                    }
-
-                    console.log('in');
                 });
-                count22++;
-                console.log('out');
+                playerXPosition = playerStartPos[level][0];
+                playerYPosition = playerStartPos[level][1];
 
-
-
-
-                //                enemyPositions.forEach(Element => {	
-                //                    function aiYmove() {
-                //                        if (Element[1] == playerYPosition && Element[0] < playerXPosition) {
-                //                            Element[0]++;
-                //                        } else if (Element[1] == playerYPosition && Element[0] > playerXPosition) {
-                //                            Element[0]--;
-                //                        } else if (Element[1] < playerYPosition) {
-                //                            Element[1] += HA;
-                //                        } else if (Element[1] > playerYPosition) {
-                //                            Element[1] -= HA;
-                //                        }
-                //                    }
-                //
-                //                    function aiXmove() {
-                //                        if (Element[0] == playerXPosition && Element[1] < playerYPosition) {
-                //                            Element[1] += HA;
-                //                        } else if (Element[0] == playerXPosition && Element[1] > playerYPosition) {
-                //                            Element[1] -= HA;
-                //
-                //                        } else if (Element[0] < playerXPosition) {
-                //                            Element[0]++;
-                //                        } else if (Element[0] > playerXPosition) {
-                //                            Element[0]--;
-                //                        }
-                //                    }
-                //
-                //                    if (Element[2] == 1) {
-                //                        aiXPast = Element[0];
-                //                        aiYPast = Element[1];
-                //                        if (difference(Element[0], playerXPosition) >= (difference(Element[1], playerYPosition) / HA)) {
-                //                            aiXmove();
-                //                            for (i = 1; i < wallsXY[level].length; i++) {
-                //                                if (Element[0] == wallsXY[level][i][0] && Element[1] == wallsXY[level][i][1]) { // if the players position is the same as the walls position then it will turn it back to its position befor hand.
-                //                                    Element[0] = aiXPast; //changes the poition to its previouse state
-                //                                    Element[1] = aiYPast; //changes the poition to its previouse state
-                //                                    aiYmove();
-                //                                }
-                //                            }
-                //
-                //                        } else {
-                //                            aiYmove();
-                //                            for (i = 1; i < wallsXY[level].length; i++) {
-                //                                if (Element[0] == wallsXY[level][i][0] && Element[1] == wallsXY[level][i][1]) { // if the players position is the same as the walls position then it will turn it back to its position befor hand.
-                //                                    Element[0] = aiXPast; //changes the poition to its previouse state
-                //                                    Element[1] = aiYPast; //changes the poition to its previouse state
-                //                                    aiXmove();
-                //                                }
-                //                            }
-                //                        }
-                //
-                //                        for (i = 1; i < wallsXY[level].length; i++) {
-                //                            if (Element[0] == wallsXY[level][i][0] && Element[1] == wallsXY[level][i][1]) { // if the players position is the same as the walls position then it will turn it back to its position befor hand.
-                //                                Element[0] = aiXPast; //changes the poition to its previouse state
-                //                                Element[1] = aiYPast; //changes the poition to its previouse state
-                //                            }
-                //                        }
-                //
-                //                        if (Element[0] == aiXPast && Element[1] == aiYPast) {} else {
-                //                            imgLoad(floorImg, grid[aiXPast][0], grid[aiYPast][1], horizontalsize, verticalsize);
-                //                        }
-                //                        colorRect(grid[Element[0]][0], grid[Element[1]][1], horizontalsize, horizontalsize, 'rgb(1,1,1,1)');
-                //                        if (playerXPosition == Element[0] && playerYPosition == Element[1]) { // if the players position is the same as the walls position then it will turn it back to its position befor hand.
-                //                            console.log('ded');
-                //                            game = false;
-                //                        }
-                //
-                //                    } else {
-                //                        Element[0] = 0;
-                //                        Element[1] = 0;
-                //                    }
-                //                });
             }
 
 
-            //            function drawAI() {
-            //
-            //                imgLoad(floorImg, grid[aiXPast][0], grid[aiYPast][1], horizontalsize, verticalsize);
-            //                colorRect(grid[enemyPositions[0][0]][0], grid[enemyPositions[0][1]][1], horizontalsize, horizontalsize, 'rgb(1,1,1,1)');
-            //
-            //
-            //            }
 
+            var defeat = false;
 
+            function death() {
+                console.log('defeat');
+                defeat = true;
+            }
+            var aiXPast = 0;
+            var aiYPast = 0;
+            const enemyStartPos = [
+                [],
+                [],
+                [],
+                [
+                    [7, 1 * HA, 1],
+                    [7, 7 * HA, 0],
+                    [9, 1 * HA, 0]
+                ],
+                [
+                    [13, 1 * HA, 1],
+                    [13, 2 * HA, 1],
+                    [13, 3 * HA, 1],
+                    [13, 4 * HA, 1],
+                    [13, 5 * HA, 1],
+                    [13, 6 * HA, 1],
+                    [13, 7 * HA, 1],
+                    [13, 8 * HA, 1],
+                    [12, 1 * HA, 1],
+                    [12, 2 * HA, 1],
+                    [12, 3 * HA, 1],
+                    [12, 4 * HA, 1],
+                    [12, 5 * HA, 1],
+                    [12, 6 * HA, 1],
+                    [12, 7 * HA, 1]
+                ],
+                [
+                    [1, 8 * HA, 0],
+                    [1, 7 * HA, 0],
+                    [2, 8 * HA, 0],
+                    [5, 4 * HA, 0],
+                    [13, 1 * HA, 0],
+                    [13, 2 * HA, 0],
+                    [13, 7 * HA, 0],
+                    [13, 8 * HA, 0],
+                    [12, 8 * HA, 0],
+                    [12, 7 * HA, 0],
+                    [11, 8 * HA, 0],
+                    [11, 8 * HA, 0],
+                    [3, 3 * HA, 1],
+                ],
+                [
+                    [1, 2 * HA, 0],
+                    [6, 6 * HA, 0],
+                    [6, 5 * HA, 0],
+                    [6, 4 * HA, 0],
+                    [7, 4 * HA, 0],
+                    [8, 4 * HA, 0],
+                    [8, 5 * HA, 0],
+                    [8, 6 * HA, 0],
+                    [7, 6 * HA, 0],
+                    [6, 8 * HA, 0],
+                    [8, 8 * HA, 0],
+                    [13, 2 * HA, 0],
+                    [13, 7 * HA, 1],
+                ],
+                [],
+            ];
+            var enemyPositions;
 
-            //            var f = g + h;
-            //            var g = 0;
-            //                    var test69 = wallsXY[level].every(function (e) {
-            //    return e[0] > 0;
-            //});
+            var count22 = 0;
+            var elementcount2 = 0;
 
+            function ggggg() {
+                if (level !== 7) {
+                    level = 7
+                } else {
+                    level = 5;
+                }
+                levelsetter();
+            }
+
+            function runAI() {
+                elementcount2 = 0;
+                enemyPositions[level].forEach(Element => {
+                    elementcount2++;
+                    var aimove = true;
+                    if (closedList[elementcount2 - 1][routChoose[elementcount2 - 1]][1][0] == playerXPosition && closedList[elementcount2 - 1][routChoose[elementcount2 - 1]][1][1] == (playerYPosition / HA)) {
+                        death();
+                    } else {
+                        for (hh = 0; hh < closedList.length; hh++) {
+                            if (closedList[elementcount2 - 1][routChoose[elementcount2 - 1]][1][0] == closedList[hh][routChoose[hh]][1][0] && closedList[elementcount2 - 1][routChoose[elementcount2 - 1]][1][1] == closedList[hh][routChoose[hh]][1][1] && elementcount2 - 1 !== hh && hh < (elementcount2 - 1)) {
+                                aimove = false;
+                            }
+                        }
+                        if (aimove == true) {
+                            aiXPast = Element[0];
+                            aiYPast = Element[1];
+                            Element[0] = closedList[elementcount2 - 1][routChoose[elementcount2 - 1]][count22][0];
+                            Element[1] = closedList[elementcount2 - 1][routChoose[elementcount2 - 1]][count22][1] * HA;
+                            imgLoad(floorImg, grid[aiXPast][0], grid[aiYPast][1], horizontalsize, verticalsize);
+                            if (Element[2] == 0) {
+                                colorRect(grid[Element[0]][0] + 2, grid[Element[1]][1] + 2, horizontalsize - 4, horizontalsize - 4, 'rgb(1,1,1,1)');
+                            } else if (Element[2] == 1) {
+                                colorRect(grid[Element[0]][0] + 2, grid[Element[1]][1] + 2, horizontalsize - 4, horizontalsize - 4, 'rgb(100,1,1,1)');
+                            }
+                        }
+                    }
+                });
+                count22++;
+            }
             var closedList = [
                 []
             ];
@@ -308,24 +292,22 @@
                 routChoose = [];
                 elementCount = 0;
                 closedList = []; //[[[[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2]],[[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2]]],[[[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2]],[[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2]]]]
-                for (kk = 0; kk < enemyPositions.length; kk++) {
+                for (kk = 0; kk < enemyPositions[level].length; kk++) {
                     closedList.push([]);
                 }
                 count22 = 1;
-                enemyPositions.forEach(Element => {
+                enemyPositions[level].forEach(Element => {
                     elementCount++;
                     failsafe = 0;
                     var checkArray = [
                         [
                             [Element[0], Element[1] / HA]
                         ]
-
                     ]
                     var openList = [
                         [
                             [Element[0], Element[1] / HA]
                         ]
-
                     ];
                     while (closedList[elementCount - 1].length <= 0 && failsafe < 90) { //just did this
                         var stepOpenList = openList.length;
@@ -434,35 +416,6 @@
                                     }
                                 }
                             }
-                            //                            console.log(openList.length)
-                            //                            if (closedList[0].length > 0 && elementCount > 1 && openList.length > 0) {
-                            //                                for (jj = 0; jj < closedList.length; jj++) {
-                            //                                    if (testLeft == true) {
-                            //                                        if (left[i+1][0] == closedList[jj][routChoose[jj]][1][0] && left[i+1][1] == closedList[jj][routChoose[jj]][1][1]) {
-                            //                                            leftfalse = true;
-                            //                                        }
-                            //                                    }
-                            //                                    if (testRight == true) {
-                            //                                        if (right[i+1][0] == closedList[jj][routChoose[jj]][1][0] && right[i+1][1] == closedList[jj][routChoose[jj]][1][1]) {
-                            //                                            rightfalse = true;
-                            //                                        }
-                            //                                    }
-                            //                                    if (testUp == true) {
-                            //                                        if (up[i+1][0] == closedList[jj][routChoose[jj]][1][0] && up[i+1][1] == closedList[jj][routChoose[jj]][1][1]) {
-                            //                                            upfalse = true;
-                            //                                        }
-                            //                                    }
-                            //                                    if (testDown == true) {
-                            //                                        if (down[i+1][0] == closedList[jj][routChoose[jj]][1][0] && down[i+1][1] == closedList[jj][routChoose[jj]][1][1]) {
-                            //                                            downfalse = true;
-                            //                                        }
-                            //                                    }
-                            //                                }
-                            //                            }
-
-
-
-
                             if (leftfalse == false) {
                                 if (left[left.length - 1][0] == playerXPosition && left[left.length - 1][1] == playerYPosition / HA) {
                                     closedList[elementCount - 1].push(left);
@@ -492,7 +445,6 @@
                                 }
                             }
                         } //for end
-
                         for (u = 0; u < stepOpenList; u++) {
                             checkArray.push(openList[u]);
                             delete openList[u];
@@ -504,198 +456,45 @@
             } //func end
             var routChoose = [];
 
-
-
-
-
-
-            //end
-            //                    } else {
-            //                        closedList.push(openList[openList.length]);
-            //                        delete openList[openList.length];
-            //                    }
-
-            //                    if (test55(ftemporaryLocationX - 1, ftemporaryLocationY) == true) { //left
-            //                        left.push((g + 1) + (difference((ftemporaryLocationX - 1), playerXPosition) + difference(ftemporaryLocationY, (playerYPosition / HA))), (g + 1), (difference((ftemporaryLocationX - 1), playerXPosition) + difference(ftemporaryLocationY, (playerYPosition / HA))));
-            //                    }else{
-            //                        left.push(100,10,10);
-            //                    }
-            //                    if (test55(ftemporaryLocationX + 1, ftemporaryLocationY) == true) { //right
-            //                        right.push((g + 1) + (difference((ftemporaryLocationX + 1), playerXPosition) + difference(ftemporaryLocationY, (playerYPosition / HA))), (g + 1), (difference((ftemporaryLocationX + 1), playerXPosition) + difference(ftemporaryLocationY, (playerYPosition / HA))));
-            //                    }else{
-            //                        right.push(100,10,10);
-            //                    }
-            //                    if (test55(ftemporaryLocationX, ftemporaryLocationY - 1) == true) { //up
-            //                        up.push((g + 1) + (difference((ftemporaryLocationX), playerXPosition) + difference(ftemporaryLocationY - 1, (playerYPosition / HA))), (g + 1), (difference((ftemporaryLocationX), playerXPosition) + difference(ftemporaryLocationY - 1, (playerYPosition / HA))));
-            //                    }else{
-            //                        up.push(100,10,10);
-            //                    }
-            //                    if (test55(ftemporaryLocationX, ftemporaryLocationY + 1) == true) { //down
-            //                        down.push((g + 1) + (difference((ftemporaryLocationX), playerXPosition) + difference(ftemporaryLocationY + 1, (playerYPosition / HA))), (g + 1), (difference((ftemporaryLocationX), playerXPosition) + difference(ftemporaryLocationY + 1, (playerYPosition / HA))));
-            //                    }else{
-            //                        down.push(100,10,10);
-            //                    }
-            //                    console.log(left);
-            //                    console.log(right);
-            //                    console.log(up);
-            //                    console.log(down);
-
-
-
-
-            //                }
-            //
-            //            }
-
-
-            //            function lengthlist(x, y) {
-            //                var trip = true;
-            //                for (po = 0; po < openList.length; po++) {
-            //                    if (x == openList[po][openList[po].length-1][0] && y == openList[po][openList[po].length-1][1]) {
-            //                        trip = false;
-            //                        
-            //                        console.log("this");
-            //                    }
-            //                }
-            //                if (trip == true) {
-            //                    return true;
-            //
-            //                }else{
-            //                    return false;
-            //                }
-            //            }
-
-
-
-            //            function testAllWalls(x){
-            //                for (l = 1; l < wallsXY[level].length; l++) {
-            //                    
-            //                    
-            //                    x = wallsXY
-            //                    
-            //                }
-            //            }
-
-
-
-
-
-
-
-            //            var resultlength = [];
-            //            var route = [];
-            //            var results = [];
-            //            var checks = 1000;
-            //            var maxLength = 200;
-            //            var reeed = 0;
-            //            var wallremove = false;
-            //
-            //            function test() {
-            //
-            //                for (i = 0; i < checks; i++) {
-            //                    var treees = [];
-            //                    var temporaryLocationX = enemyPositions[0][0];
-            //                    var temporaryLocationY = enemyPositions[0][1];
-            //                    var f = 0;
-            //                    while (temporaryLocationX !== playerXPosition && f < maxLength || temporaryLocationY !== playerYPosition && f < maxLength) {
-            //                        f++;
-            //                        reeed = Math.floor(Math.random() * 4);
-            //                        var tempx = temporaryLocationX;
-            //                        var tempy = temporaryLocationY;
-            //                        if (reeed == 0) {
-            //                            temporaryLocationX--;
-            //                        }
-            //                        if (reeed == 1) {
-            //                            temporaryLocationX++;
-            //                        }
-            //                        if (reeed == 2) {
-            //                            temporaryLocationY -= HA;
-            //                        }
-            //                        if (reeed == 3) {
-            //                            temporaryLocationY += HA;
-            //                        }
-            //                        for (c = 1; c < wallsXY[level].length; c++) {
-            //                            if (temporaryLocationX == wallsXY[level][c][0] && temporaryLocationY == wallsXY[level][c][1]) { // if the players position is the same as the walls position then it will turn it back to its position befor hand.
-            //                                temporaryLocationX = tempx; //changes the poition to its previouse state
-            //                                temporaryLocationY = tempy; //changes the poition to its previouse state
-            //                                wallremove = true;
-            //                                c = wallsXY[level].length;
-            //                            }
-            //                        }
-            //                        if (wallremove == false) {
-            //
-            //                            treees.push(reeed);
-            //                        } else {
-            //                            wallremove = false;
-            //                        }
-            //                    }
-            //                    results.push(treees);
-            //                }
-            //                for (k = 0; k < checks; k++) {
-            //                    resultlength.push(results[k].length);
-            //                }
-            //
-            //                for (d = 0; d < checks; d++) {
-            //                    if (results[d].length == min(resultlength)) {
-            //                        route.push(results[d]);
-            //                    }
-            //
-            //
-            //                }
-            //
-            //            }
-
             function min(input) {
                 if (toString.call(input) !== "[object Array]")
                     return false;
                 return Math.min.apply(null, input);
             }
 
-
-
-
             function keyPressed(evt) { /// had to put multiple so there is no order issue for the movement. helps it stop feeling sticky.
-
                 if (evt.keyCode == UP_KEY && downKeyPressed == false && leftKeyPressed == false && rightKeyPressed == false) {
                     upKeyPressed = true;
-
                 } else {
                     upKeyPressed = false;
                 }
                 if (evt.keyCode == DOWN_KEY && upKeyPressed == false && leftKeyPressed == false && rightKeyPressed == false) {
                     downKeyPressed = true;
-
                 } else {
                     downKeyPressed = false;
                 }
                 if (evt.keyCode == RIGHT_KEY && downKeyPressed == false && leftKeyPressed == false && upKeyPressed == false) {
                     rightKeyPressed = true;
-
                 } else {
                     rightKeyPressed = false;
                 }
                 if (evt.keyCode == LEFT_KEY && downKeyPressed == false && upKeyPressed == false && rightKeyPressed == false) {
                     leftKeyPressed = true;
-
-
                 } else {
                     leftKeyPressed = false;
                 }
                 if (evt.keyCode == UP_KEY && downKeyPressed == false && leftKeyPressed == false && rightKeyPressed == false) {
                     upKeyPressed = true;
-
                 } else {
                     upKeyPressed = false;
                 }
                 if (evt.keyCode == DOWN_KEY && upKeyPressed == false && leftKeyPressed == false && rightKeyPressed == false) {
                     downKeyPressed = true;
-
                 } else {
                     downKeyPressed = false;
                 }
                 if (evt.keyCode == RIGHT_KEY && downKeyPressed == false && leftKeyPressed == false && upKeyPressed == false) {
                     rightKeyPressed = true;
-
                 } else {
                     rightKeyPressed = false;
                 }
@@ -719,14 +518,6 @@
                 }
 
             }
-
-            //            function Attack() {
-            //                if (hitUpKeyPressed == true) {
-            //                    colorRect(grid[playerXPosition][0], grid[playerYPosition - HA][1], horizontalsize, verticalsize, 'rgb(1,1,1,1)');
-            //
-            //                    gamerun = true; // lets the mainloop draw the rest of the game
-            //                }
-            //            }
 
             function playerMovement() { // this changes the player's position
                 //use + or - 10 to move up or down.
@@ -764,7 +555,6 @@
                     //                    aitest2();
                 }
 
-                //                        console.log('run');
                 for (i = 1; i < wallsXY[level].length; i++) {
                     if (playerXPosition == wallsXY[level][i][0] && playerYPosition == wallsXY[level][i][1]) { // if the players position is the same as the walls position then it will turn it back to its position befor hand.
                         playerXPosition = wallCheckX; //changes the poition to its previouse state
@@ -772,26 +562,11 @@
                         gamerun = false;
                     }
                 }
-                //                for (i = 1; i < wallsXY[level].length; i++) {
-
-                //                }
-
-
-                //                for (c = 0; c < wallsXY.length; c++) { // this checks all the walls that are in the wallsXY array.
-                //                    if (playerXPosition == wallsXY[c][0] && playerYPosition == wallsXY[c][1]) { // if the players position is the same as the walls position then it will turn it back to its position befor hand.
-                //                        playerXPosition = wallCheckX; //changes the poition to its previouse state
-                //                        playerYPosition = wallCheckY; //changes the poition to its previouse state
-                //                    }
-                //                }
             }
 
-
-
-
-            //            var playeranimationtimer = 0;
             function drawPlayer() { // draws the player. sort of
-                imgLoad(floorImg, grid[wallCheckX][0], grid[wallCheckY][1], horizontalsize, verticalsize); //drwas the background on where the player was
-                imgLoad(floorImg, grid[playerXPosition][0], grid[playerYPosition][1], horizontalsize, verticalsize); //drwas the background on where the player will be
+                imgLoad(floorImg, grid[wallCheckX][0], grid[wallCheckY][1], horizontalsize, verticalsize); //draws the background on where the player was
+                imgLoad(floorImg, grid[playerXPosition][0], grid[playerYPosition][1], horizontalsize, verticalsize); //draws the background on where the player will be
                 imgLoad2(playerImgMain, timer * 40, moveFrame * 40, playerSpriteWidth, playerSpriteHeight, grid[wallCheckX][0] + (timer * 10 * (playerXPosition - wallCheckX)), grid[wallCheckY][1] + (timer * 10 * ((playerYPosition - wallCheckY) / HA)), horizontalsize, verticalsize); // draws in bettween pictures of the player. to make it feel smoother
             }
 
@@ -803,12 +578,10 @@
                         grid.push([(horizontalsize * (i)), (verticalsize * (c))]);
                     }
                 }
-                //                console.log(grid); // to see all the coordinates
             }
 
             function drawGrid() { // draws all the black squares/background
                 for (c = 0; c < grid.length; c++) {
-                    //                    colorRect(grid[c][0], grid[c][1], horizontalsize, verticalsize, "rgba(1,1,1,1)");
                     imgLoad(floorImg, grid[c][0], grid[c][1], horizontalsize, verticalsize);
                 }
             }
@@ -838,98 +611,193 @@
             //                        var finalColor = 'rgba(' + colors1 + ',' + colors2 + ',' + colors3 + ',1)'; 
             //                    grid.push(finalColor)
 
-            var level = 3;
-            //            var level = Math.floor((Math.random() * 5));
+            var level = 6;
+            //            var level = Math.floor((Math.random() * 6));
             // this is all the walls
-            var wallsXY = [
-                [ //4levels
+            var playerStartPos = [
+                [3, 8 * HA],
+                [3, 8 * HA],
+                [3, 8 * HA],
+                [3, 8 * HA],
+                [3, 8 * HA],
+                [3, 8 * HA],
+                [1, 7 * HA],
+                [3, 8 * HA],
+            ];
+            var wallsStartPoss = [
+                [ //level amount = 6;
                     0,
-                    [7, 7 * HA, 0, 4],
-                    [8, 7 * HA, 0, 4],
-                    [9, 7 * HA, 0, 4],
-                    [7, 9 * HA, 0, 4],
-                    [7, 8 * HA, 0, 4],
-                    [7, 9 * HA, 0, 4],
-                    [7, 9 * HA, 0, 4],
-                    [8, 9 * HA, 0, 4],
-                    [9, 9 * HA, 0, 4],
-                    [10, 9 * HA, 0, 4],
-                    [10, 9 * HA, 0, 4],
-                    [10, 8 * HA, 0, 4],
-                    [10, 7 * HA, 0, 4],
-                    [3, 8 * HA, 0, 4],
-                    [13, 8 * HA, 0, 4]
+                    [7, 7 * HA, 0, 4, 'pit', []],
+                    [8, 7 * HA, 0, 4, 'pit', []],
+                    [9, 7 * HA, 0, 4, 'pit', []],
+                    [7, 9 * HA, 0, 4, 'pit', []],
+                    [7, 8 * HA, 0, 4, 'pit', []],
+                    [7, 9 * HA, 0, 4, 'pit', []],
+                    [7, 9 * HA, 0, 4, 'pit', []],
+                    [8, 9 * HA, 0, 4, 'pit', []],
+                    [9, 9 * HA, 0, 4, 'pit', []],
+                    [10, 9 * HA, 0, 4, 'pit', []],
+                    [10, 9 * HA, 0, 4, 'pit', []],
+                    [10, 8 * HA, 0, 4, 'pit', []],
+                    [10, 7 * HA, 0, 4, 'pit', []],
+                    [3, 8 * HA, 0, 4, 'pit', []],
+                    [13, 8 * HA, 0, 4, 'pit', []]
                 ],
                 [
-                    1, [9, 0 * HA, 0, 4],
-                    [10, 0 * HA, 0, 4],
-                    [10, 9 * HA, 0, 4],
-                    [10, 8 * HA, 0, 4],
-                    [10, 7 * HA, 0, 4],
-                    [14, 6 * HA, 0, 4],
-                    [13, 6 * HA, 0, 4],
-                    [9, 7 * HA, 0, 4]
+                    1, [9, 0 * HA, 0, 4, 'pit', []],
+                    [10, 0 * HA, 0, 4, 'pit', []],
+                    [10, 9 * HA, 0, 4, 'pit', []],
+                    [10, 8 * HA, 0, 4, 'pit', []],
+                    [10, 7 * HA, 0, 4, 'pit', []],
+                    [14, 6 * HA, 0, 4, 'pit', []],
+                    [13, 6 * HA, 0, 4, 'pit', []],
+                    [9, 7 * HA, 0, 4, 'pit', []]
                 ],
                 [
                     4,
-                    [3, 3 * HA, 0, 4],
-                    [3, 4 * HA, 0, 4],
-                    [4, 4 * HA, 0, 4],
-                    [5, 4 * HA, 0, 4],
-                    [6, 4 * HA, 0, 4],
-                    [7, 4 * HA, 0, 4],
-                    [8, 4 * HA, 0, 4],
-                    [9, 4 * HA, 0, 4],
-                    [10, 4 * HA, 0, 4],
-                    [11, 4 * HA, 0, 4],
-                    [11, 3 * HA, 0, 4],
+                    [3, 3 * HA, 0, 4, 'pit', []],
+                    [3, 4 * HA, 0, 4, 'pit', []],
+                    [4, 4 * HA, 0, 4, 'pit', []],
+                    [5, 4 * HA, 0, 4, 'pit', []],
+                    [6, 4 * HA, 0, 4, 'pit', []],
+                    [7, 4 * HA, 0, 4, 'pit', []],
+                    [8, 4 * HA, 0, 4, 'pit', []],
+                    [9, 4 * HA, 0, 4, 'pit', []],
+                    [10, 4 * HA, 0, 4, 'pit', []],
+                    [11, 4 * HA, 0, 4, 'pit', []],
+                    [11, 3 * HA, 0, 4, 'pit', []],
                 ],
                 [
                     5,
-                    [3, 1 * HA, 0, 4],
-                    [3, 2 * HA, 0, 4],
-                    [3, 2 * HA, 0, 4],
-                    [4, 2 * HA, 0, 4],
-                    [5, 2 * HA, 0, 4],
-                    [6, 2 * HA, 0, 4],
-                    [7, 2 * HA, 0, 4],
+                    //                    [3, 1 * HA, 0, 4],
+                    //                    [3, 2 * HA, 0, 4],
+                    [2, 2 * HA, 0, 4, 'pit', []],
+                    [3, 2 * HA, 0, 4, 'pit', []],
+                    [4, 2 * HA, 0, 4, 'pit', []],
+                    [5, 2 * HA, 0, 4, 'pit', []],
+                    [6, 2 * HA, 0, 4, 'pit', []],
+                    [7, 2 * HA, 0, 4, 'pit', []],
                     //                    [8, 2 * HA, 0, 4], //
-                    [9, 2 * HA, 0, 4],
-                    [10, 2 * HA, 0, 4],
-                    [11, 2 * HA, 0, 4],
-                    [12, 2 * HA, 0, 4],
-                    [12, 3 * HA, 0, 4],
-                    [12, 4 * HA, 0, 4],
-                    [12, 5 * HA, 0, 4],
-                    [12, 6 * HA, 0, 4],
-                    [12, 7 * HA, 0, 4],
-                    [12, 7 * HA, 0, 4],
-                    [12, 7 * HA, 0, 4],
-                    [12, 7 * HA, 0, 4],
-                    [12, 7 * HA, 0, 4],
-                    [12, 7 * HA, 0, 4],
-                    [12, 7 * HA, 0, 4],
-                    [12, 7 * HA, 0, 4],
-                    [12, 7 * HA, 0, 4],
-                    [12, 7 * HA, 0, 4],
-                    [12, 7 * HA, 0, 4],
-                    [10, 8 * HA, 0, 4],
-                    [10, 7 * HA, 0, 4],
-                    [10, 6 * HA, 0, 4],
-                    [10, 5 * HA, 0, 4],
-                    [10, 4 * HA, 0, 4],
+                    [9, 2 * HA, 0, 4, 'pit', []],
+                    [10, 2 * HA, 0, 4, 'pit', []],
+                    [11, 2 * HA, 0, 4, 'pit', []],
+                    [12, 2 * HA, 0, 4, 'pit', []],
+                    [12, 3 * HA, 0, 4, 'pit', []],
+                    [12, 4 * HA, 0, 4, 'pit', []],
+                    [12, 5 * HA, 0, 4, 'pit', []],
+                    [12, 6 * HA, 0, 4, 'pit', []],
+                    [12, 7 * HA, 0, 4, 'pit', []],
+                    [12, 7 * HA, 0, 4, 'pit', []],
+                    [12, 7 * HA, 0, 4, 'pit', []],
+                    [12, 7 * HA, 0, 4, 'pit', []],
+                    [12, 7 * HA, 0, 4, 'pit', []],
+                    [12, 7 * HA, 0, 4, 'pit', []],
+                    [12, 7 * HA, 0, 4, 'pit', []],
+                    [12, 7 * HA, 0, 4, 'pit', []],
+                    [12, 7 * HA, 0, 4, 'pit', []],
+                    [12, 7 * HA, 0, 4, 'pit', []],
+                    [12, 7 * HA, 0, 4, 'pit', []],
+                    [10, 8 * HA, 0, 4, 'pit', []],
+                    [10, 7 * HA, 0, 4, 'pit', []],
+                    [10, 6 * HA, 0, 4, 'pit', []],
+                    [10, 5 * HA, 0, 4, 'pit', []],
+                    [10, 4 * HA, 0, 4, 'pit', []],
                     //                    [8, 3 * HA, 0, 4], //
-                    [8, 7 * HA, 0, 4],
-                    [8, 6 * HA, 0, 4],
-                    [8, 5 * HA, 0, 4],
-                    [8, 4 * HA, 0, 4],
-                    [6, 8 * HA, 0, 4],
-                    [6, 7 * HA, 0, 4],
-                    [6, 6 * HA, 0, 4],
-                    [6, 5 * HA, 0, 4],
-                    [6, 4 * HA, 0, 4]
+                    [8, 7 * HA, 0, 4, 'pit', []],
+                    [8, 6 * HA, 0, 4, 'pit', []],
+                    [8, 5 * HA, 0, 4, 'pit', []],
+                    [8, 4 * HA, 0, 4, 'pit', []],
+                    [6, 8 * HA, 0, 4, 'pit', []],
+                    [6, 7 * HA, 0, 4, 'pit', []],
+                    [6, 6 * HA, 0, 4, 'pit', []],
+                    [6, 5 * HA, 0, 4, 'pit', []],
+                    [6, 4 * HA, 0, 4, 'pit', []]
+                ],
+                [
+                    [6, 7 * HA, 0, 4, 'pit', []],
+                    [6, 6 * HA, 0, 4, 'pit', []],
+                    [6, 5 * HA, 0, 4, 'pit', []],
+                    [6, 4 * HA, 0, 4, 'pit', []],
+                    [6, 3 * HA, 0, 4, 'pit', []],
+                ],
+                [ // 1-13, 1-8
+
+                    0,
+                    [3, 7 * HA, 0, 4, 'pit', []],
+                    [4, 7 * HA, 0, 4, 'pit', []],
+                    [2, 5 * HA, 0, 4, 'pit', []],
+                    [2, 4 * HA, 0, 4, 'pit', []],
+                    [2, 2 * HA, 0, 4, 'pit', []],
+                    [3, 5 * HA, 0, 4, 'pit', []],
+                    [4, 5 * HA, 0, 4, 'pit', []],
+                    [5, 5 * HA, 0, 4, 'pit', []],
+                    [6, 5 * HA, 0, 4, 'pit', []],
+                    [6, 6 * HA, 0, 4, 'pit', []],
+                    [6, 7 * HA, 0, 4, 'pit', []],
+                    [6, 8 * HA, 0, 4, 'pit', []],
+                    [6, 4 * HA, 0, 4, 'pit', []],
+                    [6, 3 * HA, 0, 4, 'pit', []],
+                    [6, 3 * HA, 0, 4, 'pit', []],
+                    [2, 7 * HA, 0, 4, 'pit', []],
+                    [3, 4 * HA, 0, 4, 'pit', []],
+                    [4, 4 * HA, 0, 4, 'pit', []],
+                    [4, 3 * HA, 0, 4, 'pit', []],
+                    [4, 2 * HA, 0, 4, 'pit', []],
+                    [3, 2 * HA, 0, 4, 'pit', []],
+                    [2, 2 * HA, 0, 4, 'pit', []],
+                    [7, 3 * HA, 0, 4, 'pit', []],
+                    [8, 3 * HA, 0, 4, 'pit', []],
+                    [9, 3 * HA, 0, 4, 'pit', []],
+                    [10, 3 * HA, 0, 4, 'pit', []],
+                    [11, 3 * HA, 0, 4, 'pit', []],
+                    [12, 3 * HA, 0, 4, 'pit', []],
+                    [7, 1 * HA, 0, 4, 'pit', []],
+                    [8, 1 * HA, 0, 4, 'pit', []],
+                    [9, 1 * HA, 0, 4, 'pit', []],
+                    [10, 1 * HA, 0, 4, 'pit', []],
+                    [11, 1 * HA, 0, 4, 'pit', []],
+                    [12, 1 * HA, 0, 4, 'pit', []],
+                    [8, 5 * HA, 0, 4, 'pit', []],
+                    [8, 6 * HA, 0, 4, 'pit', []],
+                    [8, 7 * HA, 0, 4, 'pit', []],
+                    [9, 7 * HA, 0, 4, 'pit', []],
+                    [10, 7 * HA, 0, 4, 'pit', []],
+                    [11, 7 * HA, 0, 4, 'pit', []],
+                    [11, 6 * HA, 0, 4, 'pit', []],
+                    [12, 6 * HA, 0, 4, 'pit', []],
+                    [13, 6 * HA, 0, 4, 'pit', []],
+                ],
+                [
+                    0,
+                    [1, 1 * HA, 0, 4, 'pit', []],
+                    [2, 2 * HA, 0, 4, 'pit', []],
+                    [1, 8 * HA, 0, 4, 'pit', []],
+                    [2, 7 * HA, 0, 4, 'pit', []],
+                    [13, 1 * HA, 0, 4, 'pit', []],
+                    [12, 2 * HA, 0, 4, 'pit', []],
+                    [13, 8 * HA, 0, 4, 'pit', []],
+                    [12, 7 * HA, 0, 4, 'pit', []],
+                    [2, 5 * HA, 0, 4, 'pit', []],
+                    [4, 6 * HA, 0, 4, 'pit', []],
+                    [4, 5 * HA, 0, 4, 'pit', []],
+                    [4, 4 * HA, 0, 4, 'pit', []],
+                    [4, 2 * HA, 0, 4, 'pit', []],
+                    [5, 2 * HA, 0, 4, 'pit', []],
+                    [7, 2 * HA, 0, 4, 'pit', []],
+                    [7, 1 * HA, 0, 4, 'pit', []],
+                    [9, 2 * HA, 0, 4, 'pit', []],
+                    [10, 2 * HA, 0, 4, 'pit', []],
+                    [10, 4 * HA, 0, 4, 'pit', []],
+                    [10, 5 * HA, 0, 4, 'pit', []],
+                    [10, 6 * HA, 0, 4, 'pit', []],
+                    [12, 5 * HA, 0, 4, 'pit', []],
+                    [7, 5 * HA, 0, 4, 'pit', []],
+                    [7, 7 * HA, 0, 4, 'pit', []],
+                    [7, 8 * HA, 0, 4, 'pit', []],
                 ]
+
             ];
+            var wallsXY;
             var load = [2]; // this is a substitute for loading all the levels
             var left = 0;
             var right = 1;
@@ -937,45 +805,175 @@
             function loadLevels() { // creates basic walls like straight lines
                 for (i = 0; i < verticalAmount; i++) {
                     VERTICAL_WALLS();
-                    wallsXY[0].push([0, i * HA, 0, left], [HA - 1, i * HA, 0, right]);
-                    wallsXY[1].push([0, i * HA, 0, left], [HA - 1, i * HA, 0, right]);
-                    wallsXY[2].push([0, i * HA, 0, left], [HA - 1, i * HA, 0, right]);
-                    wallsXY[3].push([0, i * HA, 0, left], [HA - 1, i * HA, 0, right]);
+                    wallsStartPoss[0].push([0, i * HA, 0, left, 'wall', []], [HA - 1, i * HA, 0, right, 'wall', []]);
+                    wallsStartPoss[1].push([0, i * HA, 0, left, 'wall', []], [HA - 1, i * HA, 0, right, 'wall', []]);
+                    wallsStartPoss[2].push([0, i * HA, 0, left, 'wall', []], [HA - 1, i * HA, 0, right, 'wall', []]);
+                    wallsStartPoss[3].push([0, i * HA, 0, left, 'wall', []], [HA - 1, i * HA, 0, right, 'wall', []]);
+                    wallsStartPoss[4].push([0, i * HA, 0, left, 'wall', []], [HA - 1, i * HA, 0, right, 'wall', []]);
+                    wallsStartPoss[5].push([0, i * HA, 0, left, 'wall', []], [HA - 1, i * HA, 0, right, 'wall', []]);
+                    wallsStartPoss[6].push([0, i * HA, 0, left, 'wall', []], [HA - 1, i * HA, 0, right, 'wall', []]);
                 }
                 for (i = 0; i < HA; i++) {
                     HA_WALLS();
-                    wallsXY[0].push([i, 0 * HA, 0, left], [i, (verticalAmount - 1) * HA, 0, right]);
-                    wallsXY[1].push([i, 0 * HA, 0, left], [i, (verticalAmount - 1) * HA, 0, right]);
-                    wallsXY[2].push([i, 0 * HA, 0, left], [i, (verticalAmount - 1) * HA, 0, right]);
-                    wallsXY[3].push([i, 0 * HA, 0, left], [i, (verticalAmount - 1) * HA, 0, right]);
+                    wallsStartPoss[0].push([i, 0 * HA, 0, left, 'wall', []], [i, (verticalAmount - 1) * HA, 0, right, 'wall', []]);
+                    wallsStartPoss[1].push([i, 0 * HA, 0, left, 'wall', []], [i, (verticalAmount - 1) * HA, 0, right, 'wall', []]);
+                    wallsStartPoss[2].push([i, 0 * HA, 0, left, 'wall', []], [i, (verticalAmount - 1) * HA, 0, right, 'wall', []]);
+                    wallsStartPoss[3].push([i, 0 * HA, 0, left, 'wall', []], [i, (verticalAmount - 1) * HA, 0, right, 'wall', []]);
+                    wallsStartPoss[4].push([i, 0 * HA, 0, left, 'wall', []], [i, (verticalAmount - 1) * HA, 0, right, 'wall', []]);
+                    wallsStartPoss[5].push([i, 0 * HA, 0, left, 'wall', []], [i, (verticalAmount - 1) * HA, 0, right, 'wall', []]);
+                    wallsStartPoss[6].push([i, 0 * HA, 0, left, 'wall', []], [i, (verticalAmount - 1) * HA, 0, right, 'wall', []]);
                 }
                 for (i = 0; i < verticalAmount; i++) {
                     VERTICAL_WALLS();
-                    load.push([0, i * HA, 0, left], [HA - 1, i * HA, 0, right]);
+                    load.push([0, i * HA, 0, left, 'wall', []], [HA - 1, i * HA, 0, right, 'wall', []]);
                 }
                 for (i = 0; i < HA; i++) {
                     HA_WALLS();
-                    load.push([i, 0 * HA, 0, left], [i, (verticalAmount - 1) * HA, 0, right]);
+                    load.push([i, 0 * HA, 0, left, 'wall', []], [i, (verticalAmount - 1) * HA, 0, right, 'wall', []]);
+                    //here
                 }
-                wallsXY.push(load);
+                wallsStartPoss.push(load);
                 load = [3]; // clears the array for the next level
                 for (i = 0; i < HA; i++) {
                     HA_WALLS();
-                    load.push([i, 0 * HA, 0, left], [i, (verticalAmount - 1) * HA, 0, right]);
+                    load.push([i, 0 * HA, 0, left, 'wall', []], [i, (verticalAmount - 1) * HA, 0, right, 'wall', []]);
                 }
                 for (i = 0; i < verticalAmount; i++) {
                     VERTICAL_WALLS();
-                    load.push([0, i * HA, 0, left], [HA - 1, i * HA, 0, right]);
+                    load.push([0, i * HA, 0, left, 'wall', []], [HA - 1, i * HA, 0, right, 'wall', []]);
                 }
                 for (c = Math.floor((verticalAmount / 4) * 1); c < Math.floor((verticalAmount / 4) * 3 + 1); c++) {
 
                     for (i = Math.floor(HA / 4); i < Math.floor((HA / 4) * 3 + 1); i++) {
-                        load.push([i, c * HA, 0, 4]);
+                        load.push([i, c * HA, 0, 4, 'pit', []]);
                     }
                 }
-                wallsXY.push(load);
-                load = [5];
+                wallsStartPoss.push(load);
+                load = [6];
+                for (uu = 0; uu < wallsStartPoss.length; uu++) {
+                    for (tt = 0; tt < wallsStartPoss[uu].length; tt++) {
+                        var leftcheck = false;
+                        var rightcheck = false;
+                        var upcheck = false;
+                        var downcheck = false;
+                        var leftUpcheck = false;
+                        var rightUpcheck = false;
+                        var leftDowncheck = false;
+                        var rightDowncheck = false;
+                        for (yy = 0; yy < wallsStartPoss[uu].length; yy++) {
+                            if (wallsStartPoss[uu][yy][4] == 'pit') {
+                                if (wallsStartPoss[uu][tt][0] + 1 == wallsStartPoss[uu][yy][0] && wallsStartPoss[uu][tt][1] == wallsStartPoss[uu][yy][1]) {
+                                    rightcheck = true;
+                                }
+                                if (wallsStartPoss[uu][tt][0] - 1 == wallsStartPoss[uu][yy][0] && wallsStartPoss[uu][tt][1] == wallsStartPoss[uu][yy][1]) {
+                                    leftcheck = true;
+                                }
+                                if (wallsStartPoss[uu][tt][0] == wallsStartPoss[uu][yy][0] && wallsStartPoss[uu][tt][1] + HA == wallsStartPoss[uu][yy][1]) {
+                                    downcheck = true;
 
+                                }
+                                if (wallsStartPoss[uu][tt][0] == wallsStartPoss[uu][yy][0] && wallsStartPoss[uu][tt][1] - HA == wallsStartPoss[uu][yy][1]) {
+                                    upcheck = true;
+                                }
+                                if (wallsStartPoss[uu][tt][0] - 1 == wallsStartPoss[uu][yy][0] && wallsStartPoss[uu][tt][1] - HA == wallsStartPoss[uu][yy][1]) {
+                                    leftUpcheck = true;
+                                }
+                                if (wallsStartPoss[uu][tt][0] + 1 == wallsStartPoss[uu][yy][0] && wallsStartPoss[uu][tt][1] - HA == wallsStartPoss[uu][yy][1]) {
+                                    rightUpcheck = true;
+                                }
+                                if (wallsStartPoss[uu][tt][0] - 1 == wallsStartPoss[uu][yy][0] && wallsStartPoss[uu][tt][1] + HA == wallsStartPoss[uu][yy][1]) {
+                                    leftDowncheck = true;
+                                }
+                                if (wallsStartPoss[uu][tt][0] + 1 == wallsStartPoss[uu][yy][0] && wallsStartPoss[uu][tt][1] + HA == wallsStartPoss[uu][yy][1]) {
+                                    rightDowncheck = true;
+                                }
+                            }
+                        } //14//9
+                        if (wallsStartPoss[uu][tt][4] == 'pit') {
+                            if (leftcheck == true && rightcheck == false && upcheck == false && downcheck == false) { //left
+                                wallsStartPoss[uu][tt][3] = 20;
+                            } else if (leftcheck == true && rightcheck == true && upcheck == false && downcheck == false) { //left-right
+                                wallsStartPoss[uu][tt][3] = 22;
+                            } else if (leftcheck == true && rightcheck == true && upcheck == true && downcheck == false) { // left right up
+                                wallsStartPoss[uu][tt][3] = 12;
+                                if (leftUpcheck == false) {
+                                    wallsStartPoss[uu][tt][5].push(1);
+                                }
+                                if (rightUpcheck == false) {
+                                    wallsStartPoss[uu][tt][5].push(2);
+                                }
+                            } else if (leftcheck == true && rightcheck == true && upcheck == true && downcheck == true) { // all
+                                wallsStartPoss[uu][tt][3] = 23;
+                                if (leftUpcheck == false) {
+                                    wallsStartPoss[uu][tt][5].push(1);
+                                }
+                                if (rightUpcheck == false) {
+                                    wallsStartPoss[uu][tt][5].push(2);
+                                }
+                                if (leftDowncheck == false) {
+                                    wallsStartPoss[uu][tt][5].push(3);
+                                }
+                                if (rightDowncheck == false) {
+                                    wallsStartPoss[uu][tt][5].push(4);
+                                }
+                            } else if (leftcheck == false && rightcheck == true && upcheck == false && downcheck == false) { //right
+                                wallsStartPoss[uu][tt][3] = 19;
+                            } else if (leftcheck == true && rightcheck == false && upcheck == true && downcheck == false) { //left up
+                                wallsStartPoss[uu][tt][3] = 16;
+                                if (leftUpcheck == false) {
+                                    wallsStartPoss[uu][tt][5].push(1);
+                                }
+                            } else if (leftcheck == true && rightcheck == false && upcheck == false && downcheck == true) { //left down
+                                wallsStartPoss[uu][tt][3] = 14;
+                                if (leftDowncheck == false) {
+                                    wallsStartPoss[uu][tt][5].push(1);
+                                }
+                            } else if (leftcheck == true && rightcheck == false && upcheck == true && downcheck == true) { //left down up
+                                wallsStartPoss[uu][tt][3] = 10;
+                                if (leftDowncheck == false) {
+                                    wallsStartPoss[uu][tt][5].push(1);
+                                }
+                                if (leftUpcheck == false) {
+                                    wallsStartPoss[uu][tt][5].push(2);
+                                }
+                            } else if (leftcheck == true && rightcheck == true && upcheck == false && downcheck == true) { //left right down
+                                wallsStartPoss[uu][tt][3] = 11;
+                                if (leftDowncheck == false) {
+                                    wallsStartPoss[uu][tt][5].push(1);
+                                }
+                                if (rightDowncheck == false) {
+                                    wallsStartPoss[uu][tt][5].push(2);
+                                }
+                            } else if (leftcheck == false && rightcheck == true && upcheck == true && downcheck == true) { //right up down
+                                wallsStartPoss[uu][tt][3] = 9;
+                                if (rightUpcheck == false) {
+                                    wallsStartPoss[uu][tt][5].push(1);
+                                }
+                                if (rightDowncheck == false) {
+                                    wallsStartPoss[uu][tt][5].push(2);
+                                }
+                            } else if (leftcheck == false && rightcheck == false && upcheck == true && downcheck == true) { //up down
+                                wallsStartPoss[uu][tt][3] = 21;
+                            } else if (leftcheck == false && rightcheck == true && upcheck == true && downcheck == false) { //right up
+                                wallsStartPoss[uu][tt][3] = 15;
+                                if (rightUpcheck == false) {
+                                    wallsStartPoss[uu][tt][5].push(1);
+                                }
+                            } else if (leftcheck == false && rightcheck == false && upcheck == true && downcheck == false) { //up
+                                wallsStartPoss[uu][tt][3] = 17;
+                            } else if (leftcheck == false && rightcheck == false && upcheck == false && downcheck == true) { //down
+                                wallsStartPoss[uu][tt][3] = 18;
+                            } else if (leftcheck == false && rightcheck == true && upcheck == false && downcheck == true) { //right down
+                                wallsStartPoss[uu][tt][3] = 13;
+                                if (rightDowncheck == false) {
+                                    wallsStartPoss[uu][tt][5].push(1);
+                                }
+                            } else {
+                                wallsStartPoss[uu][tt][3] = 4;
+                            }
+                        }
+                    }
+                }
             }
 
             function VERTICAL_WALLS() {
@@ -1006,8 +1004,12 @@
 
         </script>
     </canvas>
+    <style>
+        html {
+            background-color: black;
+        }
 
-
+    </style>
 </body>
 
 </html>
