@@ -7,6 +7,7 @@
 
 <body>
     <canvas id="gameCanvas" width="600" height="400">
+        <!--600w 400h -->
         <script>
             var canvas, canvasContext;
             window.onload = function() {
@@ -16,670 +17,780 @@
                 document.addEventListener('keyup', keyReleased); // sets the event for the keyreleased func 
                 setInterval(
                     mainloop, 1000 / 35); // starts the game loop
-                creatGrid(); // creates the grid for the entier game
-                loadLevels(); // creates all the levels walls
-                levelsetter();
-                aiScript();
             }
-            var cont69 = 0;
-            var testcount = 0;
 
-            function mainloop() {
-                if (game && defeat == false) {
-                    if (timerMove >= 5 && gamerun == false) { // makes it so theres a clean interuption to your movement
-                        playerMovement();
-                        if (gamerun == true) {
-                            testcount = 0;
-                        }
-                    } else {
-                        timerMove++;
-                    }
-                    restertTimer();
-                    if (gamerun == true) { // makes it so that other things only get drawn if you move. helps for future games. can be removed.
-                        let count56 = 0;
-                        enemyPositions[level].forEach(Element => {
-                            count56++;
-                            if (playerXPosition == Element[0] && playerYPosition == Element[1]) { // if the players position is the same as the walls position then it will turn it back to its position befor hand.
-                                playerXPosition = wallCheckX; //changes the poition to its previouse state
-                                playerYPosition = wallCheckY; //changes the poition to its previouse state
-                                if (Element[2] == 1) {
-                                    walls[level].push([Element[0], Element[1]]);
-                                    imgLoad(floorImg, grid[Element[0]][0], grid[Element[1]][1], horizontalsize, verticalsize);
-                                    imgLoad2(wallImg, 0 * horizontalsize, 4 * horizontalsize, horizontalsize, horizontalsize, grid[Element[0]][0], grid[Element[1]][1], horizontalsize, verticalsize);
-                                } else {
-                                    imgLoad(floorImg, grid[Element[0]][0], grid[Element[1]][1], horizontalsize, verticalsize);
-                                }
-                                delete enemyPositions[level][count56 - 1];
-                                enemyPositions[level] = enemyPositions[level].filter(item => item !== undefined);
-                                delete closedList[count56 - 1];
-                                closedList = closedList.filter(item => item !== undefined);
-                                delete routChoose[count56 - 1];
-                                routChoose = routChoose.filter(item => item !== undefined);
-                                moveFrame += 4;
+            function mainloop() { //mainloop start
+                if (playerStatsMenu == true) { //starting menue screen
+                    if (defeat == false) { //gameover end screen
+                        if (timerMove >= 5 && gamerun == false) { // makes it so theres a clean interuption to your movement
+                            playerMovement(); //can only run with 5 second intervals
+                            if (gamerun == true) { //only rins if player moved
+                                testcount = 0;
                             }
-                        });
-
-                        if (testcount == 0) {
-                            aiScript();
-                            enemiecheck();
+                        } else {
+                            timerMove++;
                         }
-
-                        runAI();
-                        drawPlayer();
-                        testcount++;
-                        if (testcount >= 5) {
-                            gamerun = false;
-                            if (playerXPosition >= HA - 1) {
-                                goto();
-                            }
-                        }
-
-                    } else {
-                        if (timer2 >= 2) {
-                            imgLoad(floorImg, grid[playerXPosition][0], grid[playerYPosition][1], horizontalsize, verticalsize);
-                            imgLoad2(playerImgMain, timer * 40, 0, playerSpriteWidth, playerSpriteHeight, grid[playerXPosition][0], grid[playerYPosition][1], horizontalsize, verticalsize);
-                            if (timer < 9) {
-                                timer++;
-                            } else {
-                                timer = 0;
-                            }
-                            enemyPositions[level].forEach(Element => {
-                                if (Element[2] == 0) {
-                                    imgLoad(floorImg, grid[Element[0]][0], grid[Element[1]][1], horizontalsize, verticalsize);
-                                    imgLoad2(enemyWall0, Element[3] * 40, 0, playerSpriteWidth, playerSpriteHeight, (grid[Element[0]][0]), (grid[Element[1]][1]), horizontalsize, verticalsize);
-                                } else if (Element[2] == 1) {
-                                    imgLoad(floorImg, grid[Element[0]][0], grid[Element[1]][1], horizontalsize, verticalsize);
-                                    imgLoad2(enemyWall, Element[3] * 40, 0, playerSpriteWidth, playerSpriteHeight, (grid[Element[0]][0]), (grid[Element[1]][1]), horizontalsize, verticalsize);
-                                }
-                                if (Element[3] < 9) {
-                                    Element[3]++;
-                                } else {
-                                    Element[3] = 0;
+                        restertTimer(); // runs a restart timer for how long you are holding the r key
+                        if (gamerun == true) { // makes it so that other things only get drawn if you move. helps for future games. can be removed.
+                            let elementCounter = 0;
+                            enemyPositions[level].forEach(Element => { //runs for all ai's on current level
+                                elementCounter++; // to know whiche element to choos from different arrays.
+                                if (playerPos[0] == Element[0] && playerPos[1] == Element[1]) { //if players X and Y pos are the same as an enemies (kills enemy.)
+                                    playerPos[0] = wallCheckX; //changes the poition to its previouse state
+                                    playerPos[1] = wallCheckY; //changes the poition to its previouse state
+                                    if (Element[2] == 1) { // runs if enemy type is a rock
+                                        walls[level].push([Element[0], Element[1], 1, 4, 'rock', []]); // makes rock at enemies dead location
+                                        imgLoad(floorImg, grid[Element[0]][0], grid[Element[1]][1], horizontalsize, verticalsize); //draws the floor
+                                        imgLoad2(wallImg, 1 * spriteSize, 4 * spriteSize, spriteSize, spriteSize, grid[Element[0]][0], grid[Element[1]][1], horizontalsize, verticalsize); //draws the rock
+                                    } else if (Element[2] == 0) { // runs if enemy type is a slime
+                                        imgLoad(floorImg, grid[Element[0]][0], grid[Element[1]][1], horizontalsize, verticalsize); // will draw a normal floor
+                                    }
+                                    delete enemyPositions[level][elementCounter - 1]; // delets the current killed enemy
+                                    enemyPositions[level] = enemyPositions[level].filter(item => item !== undefined); // clears any undifined variables from delition
+                                    delete closedList[elementCounter - 1]; // delets dead enemys old path for ai
+                                    closedList = closedList.filter(item => item !== undefined); // clears undifined variable
+                                    delete routChoose[elementCounter - 1]; // delets dead enemies selection of rout variable
+                                    routChoose = routChoose.filter(item => item !== undefined); // clears undifined variable
+                                    moveFrame += 4; // walking animation turns into a wighting animation
                                 }
                             });
-                            timer2 = 0;
+
+                            if (testcount == 0) { // runs once every time player moves for no errors
+                                aiScript(); // gives all ais a rout to follow to the player
+                                enemiecheck(); // loops a whole bunch of times to check for any stoped ai's that were blocked by other ai's
+                            }
+
+                            runAI(); // draws ai's animations and there past positions for collisions agains other ai's
+                            drawPlayer(); // draws the players animation frame
+                            testcount++; // chenges the variable for next animation frame
+                            if (testcount >= 5) { //runs once animations have been completed
+                                gamerun = false; // disables the animation if tag
+                                if (playerPos[0] >= HA - 1) { // checks if the playerhas entered the next level
+                                    goto(); // loads the next level
+                                }
+                            }
+                            drawstats(); // draws the information on the screen
+                        } else { // gamerun else if (idel animation)
+                            if (timer2 >= 2) { // runs evry second mainloop run
+                                imgLoad(floorImg, grid[playerPos[0]][0], grid[playerPos[1]][1], horizontalsize, verticalsize); //draws flooor on player
+                                imgLoad2(playerImgMain, timer * spriteSize, 0, spriteSize, spriteSize, grid[playerPos[0]][0], grid[playerPos[1]][1], horizontalsize, verticalsize); //draws players idle animation
+                                if (timer < 9) { // runs 9 times
+                                    timer++; // changes the frame th eplayer is seeing
+                                } else {
+                                    timer = 0; // restes the animation frame back to 0
+                                }
+                                enemyPositions[level].forEach(Element => { //runs for all ai's on current level
+                                    if (Element[2] == 0) { // runs if enemy is a slime
+                                        imgLoad(floorImg, grid[Element[0]][0], grid[Element[1]][1], horizontalsize, verticalsize); // draws floor on enemy
+                                        imgLoad2(enemyWall0, Element[3] * spriteSize, 0, spriteSize, spriteSize, (grid[Element[0]][0]), (grid[Element[1]][1]), horizontalsize, verticalsize); // draws animation frame ion enemy location
+                                    } else if (Element[2] == 1) { //runs if enemy is a wall
+                                        imgLoad(floorImg, grid[Element[0]][0], grid[Element[1]][1], horizontalsize, verticalsize); // draws floor on enemy
+                                        imgLoad2(enemyWall, Element[3] * spriteSize, 0, spriteSize, spriteSize, (grid[Element[0]][0]), (grid[Element[1]][1]), horizontalsize, verticalsize); // draws animation frame ion enemy location
+                                    }
+                                    if (Element[3] < 9) { // changes tha animation frame for each enemy
+                                        Element[3]++;
+                                    } else {
+                                        Element[3] = 0;
+                                    }
+                                });
+                                timer2 = 0; // restets the timer so irt onl runs once evry second mainloop run
+                            } else {
+                                timer2++;
+                            }
+                            drawstats(); // draws the information on the screen
+                        } // gamerun if end
+                        complitionCheck(); // checks if all enemies are defated or cant reach you due to being blocked off. it will open the doors for next level
+                    } else { // runs onece the player has died
+                        if (onetick == true) { //runs once every time
+                            imgLoad(floorImg, grid[wallCheckX][0], grid[wallCheckY][1], horizontalsize, verticalsize); // drawn floor on players past position
+                            colorRect(0, 0, CanvasWidth, Canvasheight, 'rgb(50,1,1,0.7)'); // draws a grey overlay on entier screen
+                            onetick = false;
+                        }
+                        if (timer2 >= 2) { // runse every two mainloops
+                            imgLoad(floorImg, grid[playerPos[0]][0], grid[playerPos[1]][1], horizontalsize, verticalsize); // draws floor on players postiono
+                            imgLoad2(playerImgMain, timerEnd * spriteSize, 9 * spriteSize, spriteSize, spriteSize, grid[playerPos[0]][0], grid[playerPos[1]][1], horizontalsize, verticalsize); // draws players dead animation
+                            colorRect(grid[playerPos[0]][0], grid[playerPos[1]][1], horizontalsize, horizontalsize, 'rgb(50,1,1,0.7)'); // draws a gray block over player to merge with background
+                            colorRect(CanvasWidth / 4, Canvasheight / 4, CanvasWidth / 2, Canvasheight / 2, 'rgb(1,1,1,1)'); // fraws a black bx at middle of screen
+                            drawText(CanvasWidth / 2, (Canvasheight / 2) - 20, "dead", "30px Arial", "rgb(255,255,255,1)", "center"); // draws text
+                            drawText(CanvasWidth / 2, Canvasheight / 2 + 50, "Hold R to restart", "30px Arial", "rgb(255,255,255,1)", "center"); //draws text
+                            timerEnd = Math.floor(Math.random() * 10); // randomly selects the next player animation
                         } else {
                             timer2++;
                         }
+                        restertTimer(); //checks if player is holding r for a while
                     }
-                    complitionCheck();
-                } else {
-                    if (onetick == true) {
-                        imgLoad(floorImg, grid[wallCheckX][0], grid[wallCheckY][1], horizontalsize, verticalsize);
-                        colorRect(0, 0, CanvasWidth, Canvasheight, 'rgb(50,1,1,0.7)');
-                        onetick = false;
+                } else { // runs if the game has just started
+                    colorRect(0, 0, CanvasWidth, Canvasheight, "rgb(50,50,50,1)"); // draws a gray background
+                    colorRect(50, 50, CanvasWidth - 100, Canvasheight - 100, "rgb(200,200,200,1)"); // draws a light grey background
+                    //                    colorRect(CanvasWidth / 10, (Canvasheight / 2) - Canvasheight / 8.5, maxDist + canvasContext.measureText('Name:').width + 10, 35, "rgb(255,255,255,1)"); // draws the background for "Name:"
+                    drawText(CanvasWidth / 10, (Canvasheight / 2) - 20, "Name:", "30px Arial", "rgb(0,0,0,1)", "left"); // draws "Name:"
+                    drawText(CanvasWidth / 2, (Canvasheight / 1.5), "Press enter/return to continue", "30px Arial", "rgb(0,0,0,1)", "center"); // draws "Name:"
+                    if (playerStats[0].length >= 1) { //checks if there is somthing to draw
+                        drawText(150 + (0 * 25), (Canvasheight / 2) - 20, playerStats[0][0], "30px Arial", "rgb(0,0,0,1)", "left"); // draws the text from the players imputs
                     }
-                    if (timer2 >= 2) {
-                        imgLoad(floorImg, grid[playerXPosition][0], grid[playerYPosition][1], horizontalsize, verticalsize);
-                        imgLoad2(playerImgMain, timerEnd * 40, 9 * 40, playerSpriteWidth, playerSpriteHeight, grid[playerXPosition][0], grid[playerYPosition][1], horizontalsize, verticalsize);
-                        colorRect(grid[playerXPosition][0], grid[playerYPosition][1], horizontalsize, horizontalsize, 'rgb(50,1,1,0.7)');
-                        colorRect(CanvasWidth / 4, Canvasheight / 4, CanvasWidth / 2, Canvasheight / 2, 'rgb(1,1,1,1)');
-                        drawText(CanvasWidth / 2, (Canvasheight / 2) - 20, "dead", "30px Arial", "rgb(255,255,255,1)", "center");
-                        drawText(CanvasWidth / 2, Canvasheight / 2 + 50, "Hold R to restart", "30px Arial", "rgb(255,255,255,1)", "center");
-                        timerEnd = Math.floor(Math.random() * 10);
-                    } else {
-                        timer2++;
+                    if (menuClose == true) { // runs the game once th eplayer presses enter
+                        creatGrid(); // creates the grid for the entier game
+                        loadLevels(); // creates all the levels walls
+                        levelsetter(); /// sets all variables to there correct positions and values
+                        aiScript(); // runs the ais routing
+                        playerStatsMenu = true; // start the game
+                        if (playerStats[0].length <= 0) { // if th eplayer didnt right anything
+                            playerStats[0][0] = 'player1'; // sets th eplayer name to player1
+                        } else {
+                            if (playerStats[0][0].length <= 0) { // fi the player wrote somthing bu then deleted all of it
+                                playerStats[0][0] = 'player1'; //sets th eplayer name to player1
+                            }
+                        }
                     }
-                    restertTimer();
-                }
-            }
-            //mainloop timers and ifs
+                } //playerStatsMenu if end
+            } //mainloop end
+
+            //menue varaibles
+            var playerStatsMenu = false;
+            var menuClose = false;
+            var backSpaceContainer;
+            var playerStats = [
+                []
+            ];
+
+            var grid = []; // the array for all tiles (grids)
+            var level = 0; //starting level and level counter
+            var defeat = false;
+
+            //timers and counters
+            var testcount = 0;
             var timerEnd = 0;
             var gamerun = false;
             var movement = false;
             var timerMove = 0;
             var timer = 0;
             var timer2 = 0;
-            var timer3 = 0;
-            var game = true;
             var onetick = true;
+            var levelloadTimer = 0;
+            var routeCount = 0;
+            var restartTime = 20;
+            var timerLength = 20;
+            var retries = 0;
 
-            //grid variables. try not to get odd numbers with the horiontalSize and verticalSize
+            //grid variables.
             var CanvasWidth = document.getElementById('gameCanvas').width;
             var Canvasheight = document.getElementById('gameCanvas').height;
-            var HA = 15; // made this HA so theres not as much code for the coordinates for the walls.
-            var verticalAmount = 10;
-            var horizontalsize = (CanvasWidth / HA);
-            var verticalsize = (Canvasheight / verticalAmount);
+            var HA = 15; //HA stands for horizontal amount //the amount of horizontal tiles on screen
+            var verticalAmount = 10; //the amount of vartical tiles on screen
+            var horizontalsize = (CanvasWidth / HA); //sizes of each tile (px)
+            var verticalsize = (Canvasheight / verticalAmount); //sizes of each tile (px)
 
             //players current position and starting position
-            var playerXPosition = 3;
-            var playerYPosition = 8 * HA;
-
-            var playerSpriteHeight = verticalsize;
-            var playerSpriteWidth = horizontalsize;
-            var frameX = 2;
+            var playerPos = [0, 0];
             var moveFrame = 1;
 
-            //player movement keys
+            // player past positions for wall collision
+            var wallCheckY = playerPos[1];
+            var wallCheckX = playerPos[0];
+
+            const spriteSize = 40; // all sprite image sizes
+
+            //All KeyCodes
             const LEFT_ARROW_KEY = 37;
-            const RIGHT_ARROW_KEY = 39;
-            const UP_ARROW_KEY = 38;
-            const DOWN_ARROW_KEY = 40;
             const LEFT_KEY = 65;
+            const RIGHT_ARROW_KEY = 39;
             const RIGHT_KEY = 68;
+            const UP_ARROW_KEY = 38;
             const UP_KEY = 87;
+            const DOWN_ARROW_KEY = 40;
             const DOWN_KEY = 83;
+            const R_KEY = 82;
+            const SHIFT_KEY = 16;
             var leftKeyPressed = false;
             var rightKeyPressed = false;
             var upKeyPressed = false;
             var downKeyPressed = false;
-
-            const R_KEY = 82;
             var rKeyPressed = false;
+            var shiftKeyPressed = false;
 
             //images
             var floorImg = new Image();
             floorImg.src = "img/floor.png";
             var wallImg = new Image();
             wallImg.src = "img/walls_v4.png";
-            var playerImg = new Image();
-            playerImg.src = "img/player.png";
             var playerImgMain = new Image();
             playerImgMain.src = "img/main_player.png";
             var enemyWall = new Image();
             enemyWall.src = "img/enemy_sheet1.png";
             var enemyWall0 = new Image();
             enemyWall0.src = "img/enemy_sheet0.png";
-            // for the wall collision
-            var wallCheckY = playerYPosition;
-            var wallCheckX = playerXPosition;
 
-            var restartTime = timerLength;
-            var timerLength = 35;
-
-            function restertTimer() {
-                if (rKeyPressed == true) {
-                    restartTime--;
-                }
-                if (restartTime <= 0) {
-                    retry();
-                    restartTime = timerLength;
-                }
-            }
-
-
-
-
-            function complitionCheck() {
-                if (enemyPositions[level].length <= 0) {
-                    for (let b = 0; b < walls[level].length; b++)
-                        if (walls[level][b][4] == 'door') {
-                            walls[level][b][2] = 2;
-                            imgLoad2(wallImg, walls[level][b][2] * horizontalsize, walls[level][b][3] * horizontalsize, horizontalsize, horizontalsize, grid[walls[level][b][0]][0], grid[walls[level][(b)][1]][1], horizontalsize, verticalsize);
-                        }
-                }
-            }
-
-
-            function drawWalls() {
-                for (let i = 0; i < walls[level].length; i++) {
-                    imgLoad2(wallImg, walls[level][i][2] * horizontalsize, walls[level][i][3] * horizontalsize, horizontalsize, horizontalsize, grid[walls[level][i][0]][0], grid[walls[level][(i)][1]][1], horizontalsize, verticalsize);
-                    for (let pp = 0; pp < walls[level][i][5].length; pp++) {
-                        imgLoad2(wallImg, walls[level][i][5][pp] * horizontalsize, walls[level][i][3] * horizontalsize, horizontalsize, horizontalsize, grid[walls[level][i][0]][0], grid[walls[level][(i)][1]][1], horizontalsize, verticalsize);
-
-                    }
-                }
-            }
-
-            function levelsetter() {
-                levelloadTimer = 20;
-                drawGrid(); //darws background once
-                walls = JSON.parse(JSON.stringify(wallsStartPoss));
-                drawWalls(); //draws walls onsce
-                playerXPosition = playerStartPos[level][0];
-                playerYPosition = playerStartPos[level][1];
-                enemyPositions = JSON.parse(JSON.stringify(enemyStartPos));
-                enemyPositions[level].forEach(Element => {
-                    if (Element[2] == 0) {
-                        imgLoad(floorImg, grid[Element[0]][0], grid[Element[1]][1], horizontalsize, verticalsize);
-                        imgLoad2(enemyWall0, Element[3] * 40, 0 * 40, playerSpriteWidth, playerSpriteHeight, grid[Element[0]][0], grid[Element[1]][1], horizontalsize, verticalsize);
-                    } else if (Element[2] == 1) {
-                        imgLoad(floorImg, grid[Element[0]][0], grid[Element[1]][1], horizontalsize, verticalsize);
-                        imgLoad2(enemyWall, Element[3] * 40, 0 * 40, playerSpriteWidth, playerSpriteHeight, grid[Element[0]][0], grid[Element[1]][1], horizontalsize, verticalsize);
-                    }
-                });
-                aiScript();
-            }
-
-            var defeat = false;
-
-            function death() {
-                defeat = true;
-            }
-            var enemyPositions;
-
-            var routeCount = 0;
-            var elementCounterRunAI = 0;
-
-            function goto() {
-                level++;
-                levelsetter();
-            }
-
-            function enemiecheck() {
-                enemyPositions[level].forEach(Element => {
-                    Element[5] = true;
-                });
-                enemyPositions[level].forEach(Element => {
-                    for (let hh = 0; hh < enemyPositions[level].length; hh++) {
-                        for (let ff = 0; ff < enemyPositions[level].length; ff++) {
-                            if (closedList[hh][routChoose[hh]][1][0] == closedList[ff][routChoose[ff]][1][0] && closedList[hh][routChoose[hh]][1][1] == closedList[ff][routChoose[ff]][1][1] && hh !== ff && ff < (hh)) {
-                                enemyPositions[level][hh][5] = false;
-                            }
-                            if (closedList[hh][routChoose[hh]][1][0] == enemyPositions[level][ff][0] && closedList[hh][routChoose[hh]][1][1] * HA == enemyPositions[level][ff][1] && enemyPositions[level][ff][5] == false && hh !== ff) {
-                                enemyPositions[level][hh][5] = false;
-                            }
-                        }
-                    }
-                });
-            }
-
-            function runAI() {
-                elementCounterRunAI = 0;
-                enemyPositions[level].forEach(Element => {
-                    elementCounterRunAI++;
-                    let aimove = true;
-                    if (closedList[elementCounterRunAI - 1][routChoose[elementCounterRunAI - 1]][1][0] == playerXPosition && closedList[elementCounterRunAI - 1][routChoose[elementCounterRunAI - 1]][1][1] == (playerYPosition / HA)) {
-                        death();
-                    } else {
-                        for (let hh = 0; hh < enemyPositions[level].length; hh++) {
-                            if (closedList[elementCounterRunAI - 1][routChoose[elementCounterRunAI - 1]][1][0] == closedList[hh][routChoose[hh]][1][0] && closedList[elementCounterRunAI - 1][routChoose[elementCounterRunAI - 1]][1][1] == closedList[hh][routChoose[hh]][1][1] && elementCounterRunAI - 1 !== hh && hh < (elementCounterRunAI - 1)) {
-                                aimove = false;
-                                Element[5] = false;
-                            }
-                            if (closedList[elementCounterRunAI - 1][routChoose[elementCounterRunAI - 1]][1][0] * HA == enemyPositions[level][hh][0] && closedList[elementCounterRunAI - 1][routChoose[elementCounterRunAI - 1]][1][1] * HA == enemyPositions[level][hh][1] && enemyPositions[level][hh][5] == false && elementCounterRunAI - 1 !== hh) {
-                                aimove = false;
-                                Element[5] = false;
-                            }
-                        }
-                        if (aimove == true && Element[5] == true) {
-                            if (testcount == 0) {
-                                Element[4][0] = JSON.parse(JSON.stringify(Element[0])); //variable to contain its past X position
-                                Element[4][1] = JSON.parse(JSON.stringify(Element[1])); //variable to contain its past Y position
-                                Element[0] = JSON.parse(JSON.stringify(closedList[elementCounterRunAI - 1][routChoose[elementCounterRunAI - 1]][routeCount][0])); //changes its X position according to the rout it found with test55();
-                                Element[1] = JSON.parse(JSON.stringify(closedList[elementCounterRunAI - 1][routChoose[elementCounterRunAI - 1]][routeCount][1] * HA)); //changes its Y position according to the rout it found with test55();
-                            }
-                            let back = true;
-                            let forward = true;
-                            for (let cc = 0; cc < enemyPositions[level].length; cc++) {
-                                if (Element[4][0] == enemyPositions[level][cc][0] && Element[4][1] == enemyPositions[level][cc][1] && cc !== elementCounterRunAI - 1 && elementCounterRunAI - 1 > cc) {
-                                    back = false;
-                                }
-                                if (Element[0] == enemyPositions[level][cc][4][0] && Element[1] == enemyPositions[level][cc][4][1] && cc !== elementCounterRunAI - 1 && elementCounterRunAI - 1 > cc) {
-                                    forward = false;
-                                }
-                            }
-                            if (back == true) {
-                                imgLoad(floorImg, grid[Element[4][0]][0], grid[Element[4][1]][1], horizontalsize, verticalsize);
-                            }
-                            if (forward == true) {
-                                imgLoad(floorImg, grid[Element[0]][0], grid[Element[1]][1], horizontalsize, verticalsize);
-                            }
-
-
-                            if (Element[2] == 0) {
-                                imgLoad2(enemyWall0, testcount * 40, 1 * 40, playerSpriteWidth, playerSpriteHeight, (grid[closedList[elementCounterRunAI - 1][routChoose[elementCounterRunAI - 1]][0][0]][0] + (testcount * 10 * (closedList[elementCounterRunAI - 1][routChoose[elementCounterRunAI - 1]][1][0] - closedList[elementCounterRunAI - 1][routChoose[elementCounterRunAI - 1]][0][0]))), (grid[closedList[elementCounterRunAI - 1][routChoose[elementCounterRunAI - 1]][0][1] * HA][1] + (testcount * 10 * (closedList[elementCounterRunAI - 1][routChoose[elementCounterRunAI - 1]][1][1] - closedList[elementCounterRunAI - 1][routChoose[elementCounterRunAI - 1]][0][1]))), horizontalsize, verticalsize);
-                            } else if (Element[2] == 1) {
-                                //                                imgLoad(floorImg, grid[Element[0]][0], grid[Element[1]][1], horizontalsize, verticalsize);
-                                imgLoad2(enemyWall, testcount * 40, 1 * 40, playerSpriteWidth, playerSpriteHeight, (grid[closedList[elementCounterRunAI - 1][routChoose[elementCounterRunAI - 1]][0][0]][0] + (testcount * 10 * (closedList[elementCounterRunAI - 1][routChoose[elementCounterRunAI - 1]][1][0] - closedList[elementCounterRunAI - 1][routChoose[elementCounterRunAI - 1]][0][0]))), (grid[closedList[elementCounterRunAI - 1][routChoose[elementCounterRunAI - 1]][0][1] * HA][1] + (testcount * 10 * (closedList[elementCounterRunAI - 1][routChoose[elementCounterRunAI - 1]][1][1] - closedList[elementCounterRunAI - 1][routChoose[elementCounterRunAI - 1]][0][1]))), horizontalsize, verticalsize);
-
-                            }
-                        } else {
-                            if (Element[2] == 0) {
-                                imgLoad(floorImg, grid[Element[0]][0], grid[Element[1]][1], horizontalsize, verticalsize);
-                                imgLoad2(enemyWall0, Element[3] * 40, 0 * 40, playerSpriteWidth, playerSpriteHeight, (grid[Element[0]][0]), (grid[Element[1]][1]), horizontalsize, verticalsize);
-                            } else if (Element[2] == 1) {
-                                imgLoad(floorImg, grid[Element[0]][0], grid[Element[1]][1], horizontalsize, verticalsize);
-                                imgLoad2(enemyWall, Element[3] * 40, 0 * 40, playerSpriteWidth, playerSpriteHeight, (grid[Element[0]][0]), (grid[Element[1]][1]), horizontalsize, verticalsize);
-                            }
-                        }
-                    }
-                });
-                routeCount++;
-            }
+            //AI lists
             var routChoose = [];
             var closedList = [
                 []
             ];
+            //storage for walls and enemies
+            var enemyPositions;
+            var walls;
 
-            function aiScript() { //func start
-                routChoose = [];
-                let elementCount = 0;
-                closedList = []; //[[[[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2]],[[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2]]],[[[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2]],[[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2]]]]
-                for (let kk = 0; kk < enemyPositions[level].length; kk++) {
-                    closedList.push([]);
+            function drawstats() { //drwas all the stats at the top of the game screen
+                //player name
+                colorRect(CanvasWidth / 40, Canvasheight / 50, CanvasWidth / 6 + canvasContext.measureText(playerStats[0][0]).width, Canvasheight / 15, '#d5a669');
+                drawText(CanvasWidth / 25, Canvasheight / 15, "Player: " + playerStats[0][0], "20px Arial", "rgb(0,0,0,1)", "left");
+                //level
+                colorRect(CanvasWidth / 2 - CanvasWidth / 100, Canvasheight / 50, CanvasWidth / 8 - CanvasWidth / 100 + canvasContext.measureText((level + 1)).width, Canvasheight / 15, '#d5a669');
+                drawText(CanvasWidth / 6 * 3, Canvasheight / 15, "Level: " + (level + 1), "20px Arial", "rgb(0,0,0,1)", "left");
+                //retry counter
+                colorRect(CanvasWidth / 5 * 4, Canvasheight / 50, CanvasWidth / 7 + canvasContext.measureText(retries).width, Canvasheight / 15, '#d5a669');
+                drawText(CanvasWidth / 5 * 4 + CanvasWidth / 100, Canvasheight / 15, "Retries: " + retries, "20px Arial", "rgb(0,0,0,1)", "left");
+            } //func end
+
+            function toutorial1() { //first tutorial
+                //top
+                colorRect(horizontalsize, verticalsize, horizontalsize * 13, verticalsize * 3, "rgb(0,0,0,1)");
+                drawText(CanvasWidth / 2, (Canvasheight / 4) - Canvasheight / 16, "WASD or Arrow Keys to move.", "20px Arial", "rgb(255,255,255,1)", "center");
+                drawText(CanvasWidth / 2, (Canvasheight / 4) + Canvasheight / 16, "Hold r to restart current level.", "20px Arial", "rgb(255,255,255,1)", "center");
+                //bottom
+                colorRect(horizontalsize, verticalsize * 7, horizontalsize * 13, verticalsize * 2, "rgb(0,0,0,1)");
+                drawText(CanvasWidth / 2, (Canvasheight / 4 * 3) + Canvasheight / 14, "Walk into enemies to kill them.", "20px Arial", "rgb(255,255,255,1)", "center");
+            } //func end
+
+            function toutorial2() { //second tutorial
+                //top
+                colorRect(horizontalsize, verticalsize, horizontalsize * 13, verticalsize * 1, "rgb(0,0,0,1)");
+                drawText(CanvasWidth / 2, (Canvasheight / 4) - Canvasheight / 12, "Wall enemies turn into walls once defeated.", "20px Arial", "rgb(255,255,255,1)", "center");
+            } //func end
+
+            function restertTimer() { // checks how long you are holding r
+                if (rKeyPressed == true) {
+                    restartTime--; //lowers the timer
                 }
-                routeCount = 1;
-                enemyPositions[level].forEach(Element => { //foreach start
-                    elementCount++;
-                    let failsafe = 0;
-                    var checkArray = [
+                if (restartTime <= 0) { // id the timer runs out it will restart the current level
+                    retry();
+                    restartTime = timerLength; //resets the timer
+                }
+            } //func end
+
+            function complitionCheck() { //checks if you have completed the level
+                let elementcounter = 0;
+                let check = false;
+                if (enemyPositions[level].length > 0) { //if there are enemies it will run
+                    enemyPositions[level].forEach(Element => { // will run for each enemy
+                        elementcounter++;
+                        if (closedList[elementcounter - 1].length > 0) { // if the enemy found a way to you
+                            check = true;
+                        }
+                    }); //foreach end
+                }
+                if (check == false) { //if there were no enemies that found a way to you then the doors would open and you can go through them
+                    for (let b = 0; b < walls[level].length; b++) { //checks all walls
+                        if (walls[level][b][4] == 'door') { // if any of the walls are doors 
+                            walls[level][b][2] = 2; //change the picture to an open door
+                            imgLoad2(wallImg, walls[level][b][2] * spriteSize, walls[level][b][3] * spriteSize, spriteSize, spriteSize, grid[walls[level][b][0]][0], grid[walls[level][(b)][1]][1], horizontalsize, verticalsize); //draws the open door once on current door location
+                        }
+                    } //for end
+                }
+            } // func end
+
+            function drawWalls() { //draws all the walls
+                for (let i = 0; i < walls[level].length; i++) { //runs for each wall
+                    imgLoad2(wallImg, walls[level][i][2] * spriteSize, walls[level][i][3] * spriteSize, spriteSize, spriteSize, grid[walls[level][i][0]][0], grid[walls[level][(i)][1]][1], horizontalsize, verticalsize); // draws the designated picture for each wall
+                    for (let pp = 0; pp < walls[level][i][5].length; pp++) { // runs if there are any corner changes that need to be drawn
+                        imgLoad2(wallImg, walls[level][i][5][pp] * spriteSize, walls[level][i][3] * spriteSize, spriteSize, spriteSize, grid[walls[level][i][0]][0], grid[walls[level][(i)][1]][1], horizontalsize, verticalsize); // draws all corner pieces
+
+                    }
+                }
+            } // func end
+
+            function levelsetter() { // sets all the variables
+                levelloadTimer = 20; // so that you cant play for the first seconds(stops you from just runing into enemies and walls at begining of level)
+                drawGrid(); //draws every ground tile once
+                walls = JSON.parse(JSON.stringify(wallsStartPoss)); // makes a deep clone of wallsStartPoss to walls. thius is for if you retsrt the level that the level dosent get altered
+                drawWalls(); //draws walls once
+                playerPos[0] = playerStartPos[level][0]; //sets player xpos to level starting xpos
+                playerPos[1] = playerStartPos[level][1]; //sets player ypos to level starting ypos
+                enemyPositions = JSON.parse(JSON.stringify(enemyStartPos)); // makes a deep clone of all enemy positions to enemyPositions(lets you change the enemies and then restart and change everything to there prior state);
+                enemyPositions[level].forEach(Element => { //runs for all enemies on level
+                    if (Element[2] == 0) { //runs for slimes
+                        imgLoad(floorImg, grid[Element[0]][0], grid[Element[1]][1], horizontalsize, verticalsize);
+                        imgLoad2(enemyWall0, Element[3] * spriteSize, 0 * spriteSize, spriteSize, spriteSize, grid[Element[0]][0], grid[Element[1]][1], horizontalsize, verticalsize);
+                    } else if (Element[2] == 1) { //runs for wall enemies
+                        imgLoad(floorImg, grid[Element[0]][0], grid[Element[1]][1], horizontalsize, verticalsize);
+                        imgLoad2(enemyWall, Element[3] * spriteSize, 0 * spriteSize, spriteSize, spriteSize, grid[Element[0]][0], grid[Element[1]][1], horizontalsize, verticalsize);
+                    }
+                });
+                aiScript(); //runs ai
+                //draws tutorials for specific levels
+                if (level == 0) {
+                    toutorial1();
+                } else if (level == 2) {
+                    toutorial2();
+                }
+            } //func end
+
+            function death() { //dont need to explain
+                defeat = true;
+            } //func end
+
+            function goto() { //goes to next level
+                level++;
+                levelsetter();
+            } //func end
+
+            function enemiecheck() { //checks if any enemies are in each enemies way
+                enemyPositions[level].forEach(Element => { //turns all enemies movement status to true
+                    Element[5] = true;
+                });
+                enemyPositions[level].forEach(Element => { //checks each enemies
+                    for (let hh = 0; hh < enemyPositions[level].length; hh++) { // for each enemy
+                        if (closedList[hh].length > 0) { // if they have a place to move
+                            for (let ff = 0; ff < enemyPositions[level].length; ff++) { // for each enemy
+                                if (closedList[ff].length > 0) { // if they can move 
+                                    if (closedList[hh][routChoose[hh]][1][0] == closedList[ff][routChoose[ff]][1][0] && closedList[hh][routChoose[hh]][1][1] == closedList[ff][routChoose[ff]][1][1] && hh !== ff && ff < (hh)) { // if theres an enmies future position in there way and have a higher priority
+                                        enemyPositions[level][hh][5] = false; // stets there movement to false
+                                    }
+                                    if (closedList[hh][routChoose[hh]][1][0] == enemyPositions[level][ff][0] && closedList[hh][routChoose[hh]][1][1] * HA == enemyPositions[level][ff][1] && enemyPositions[level][ff][5] == false && hh !== ff) { // if theres a stoped enemy in the way 
+                                        enemyPositions[level][hh][5] = false; // sets there movement to false
+                                    }
+                                }
+                            } //for end
+                        }
+                    } //for end
+                }); //foreach end
+            } //func end
+
+            function runAI() { // draws all current enemies
+                let elementCounterRunAI = 0; // to know which enemy is being run for other arrays
+                enemyPositions[level].forEach(Element => { //for each enemy on current level
+                    elementCounterRunAI++; // to know which enemy is being run for other arrays
+                    if (closedList[elementCounterRunAI - 1].length !== 0) { //if they have a wy to get to you
+                        if (closedList[elementCounterRunAI - 1][routChoose[elementCounterRunAI - 1]][1][0] == playerPos[0] && closedList[elementCounterRunAI - 1][routChoose[elementCounterRunAI - 1]][1][1] == (playerPos[1] / HA)) { // if the enemies next move is on the player
+                            death(); // player dies
+                        } else {
+                            if (Element[5] == true) { // if ai can move
+                                if (testcount == 0) { //runs once everytime player moves
+                                    Element[4][0] = JSON.parse(JSON.stringify(Element[0])); //variable to contain its past X position(needed for succesful animations)
+                                    Element[4][1] = JSON.parse(JSON.stringify(Element[1])); //variable to contain its past Y position(needed for succesful animations)
+                                    Element[0] = JSON.parse(JSON.stringify(closedList[elementCounterRunAI - 1][routChoose[elementCounterRunAI - 1]][routeCount][0])); //changes its X position according to the rout it found with aiScript();
+                                    Element[1] = JSON.parse(JSON.stringify(closedList[elementCounterRunAI - 1][routChoose[elementCounterRunAI - 1]][routeCount][1] * HA)); //changes its Y position according to the rout it found with aiScript();
+                                }
+                                let back = true;
+                                let forward = true;
+                                for (let cc = 0; cc < enemyPositions[level].length; cc++) { //for each enemy 
+                                    if (Element[4][0] == enemyPositions[level][cc][0] && Element[4][1] == enemyPositions[level][cc][1] && cc !== elementCounterRunAI - 1 && elementCounterRunAI - 1 > cc) { // checks if there is an enemy behind this enemy and that current enemy gets drawn before the enemy behind it
+                                        back = false;
+                                    }
+                                    if (Element[0] == enemyPositions[level][cc][4][0] && Element[1] == enemyPositions[level][cc][4][1] && cc !== elementCounterRunAI - 1 && elementCounterRunAI - 1 > cc) { // checks if there is an enemy infront this enemy and that current enemy gets drawn before the enemy behind it
+                                        forward = false;
+                                    }
+                                }
+                                if (back == true) {
+                                    imgLoad(floorImg, grid[Element[4][0]][0], grid[Element[4][1]][1], horizontalsize, verticalsize); //draws floor on enemies past position
+                                }
+                                if (forward == true) {
+                                    imgLoad(floorImg, grid[Element[0]][0], grid[Element[1]][1], horizontalsize, verticalsize); //draws floor on enemies next position
+                                }
+
+                                if (Element[2] == 0) { //if enemy is a slime
+                                    imgLoad2(enemyWall0, testcount * spriteSize, 1 * spriteSize, spriteSize, spriteSize, (grid[closedList[elementCounterRunAI - 1][routChoose[elementCounterRunAI - 1]][0][0]][0] + (testcount * (horizontalsize / 4) * (closedList[elementCounterRunAI - 1][routChoose[elementCounterRunAI - 1]][1][0] - closedList[elementCounterRunAI - 1][routChoose[elementCounterRunAI - 1]][0][0]))), (grid[closedList[elementCounterRunAI - 1][routChoose[elementCounterRunAI - 1]][0][1] * HA][1] + (testcount * (verticalsize / 4) * (closedList[elementCounterRunAI - 1][routChoose[elementCounterRunAI - 1]][1][1] - closedList[elementCounterRunAI - 1][routChoose[elementCounterRunAI - 1]][0][1]))), horizontalsize, verticalsize); //draws enemies animation
+                                } else if (Element[2] == 1) { //if enemy is a wall
+                                    imgLoad2(enemyWall, testcount * spriteSize, 1 * spriteSize, spriteSize, spriteSize, (grid[closedList[elementCounterRunAI - 1][routChoose[elementCounterRunAI - 1]][0][0]][0] + (testcount * (horizontalsize / 4) * (closedList[elementCounterRunAI - 1][routChoose[elementCounterRunAI - 1]][1][0] - closedList[elementCounterRunAI - 1][routChoose[elementCounterRunAI - 1]][0][0]))), (grid[closedList[elementCounterRunAI - 1][routChoose[elementCounterRunAI - 1]][0][1] * HA][1] + (testcount * (verticalsize / 4) * (closedList[elementCounterRunAI - 1][routChoose[elementCounterRunAI - 1]][1][1] - closedList[elementCounterRunAI - 1][routChoose[elementCounterRunAI - 1]][0][1]))), horizontalsize, verticalsize); //draws enemies animation
+                                }
+                            } else { // if the enemy isnt moving because of being blocked
+                                //enemies idle animations(its two times faset than normal animation)
+                                if (Element[2] == 0) { //if enemy is a slime
+                                    imgLoad(floorImg, grid[Element[0]][0], grid[Element[1]][1], horizontalsize, verticalsize); //draws floor on enemy
+                                    imgLoad2(enemyWall0, Element[3] * spriteSize, 0 * spriteSize, spriteSize, spriteSize, (grid[Element[0]][0]), (grid[Element[1]][1]), horizontalsize, verticalsize); //draws animation
+                                } else if (Element[2] == 1) { //if enemy is a wall
+                                    imgLoad(floorImg, grid[Element[0]][0], grid[Element[1]][1], horizontalsize, verticalsize); //draws floor on enemy
+                                    imgLoad2(enemyWall, Element[3] * spriteSize, 0 * spriteSize, spriteSize, spriteSize, (grid[Element[0]][0]), (grid[Element[1]][1]), horizontalsize, verticalsize); //draws animation
+                                }
+                                if (Element[3] < 9) { //animation counter
+                                    Element[3]++;
+                                } else {
+                                    Element[3] = 0;
+                                }
+                            } //Element[5] if end
+                        }
+                    } else { //if ai cant reach you
+                        //enemies idle animations(its two times faset than normal animation)
+                        if (Element[2] == 0) { //if enemy is a slime
+                            imgLoad(floorImg, grid[Element[0]][0], grid[Element[1]][1], horizontalsize, verticalsize); //draws floor on enemy
+                            imgLoad2(enemyWall0, Element[3] * spriteSize, 0 * spriteSize, spriteSize, spriteSize, (grid[Element[0]][0]), (grid[Element[1]][1]), horizontalsize, verticalsize); //draws animation
+                        } else if (Element[2] == 1) { //if enemy is a wall
+                            imgLoad(floorImg, grid[Element[0]][0], grid[Element[1]][1], horizontalsize, verticalsize); //draws floor on enemy
+                            imgLoad2(enemyWall, Element[3] * spriteSize, 0 * spriteSize, spriteSize, spriteSize, (grid[Element[0]][0]), (grid[Element[1]][1]), horizontalsize, verticalsize); //draws animation
+                        }
+                        if (Element[3] < 9) { //animation counter
+                            Element[3]++;
+                        } else {
+                            Element[3] = 0;
+                        }
+                    } //closedlist.legth if end
+                }); //foreach end
+                routeCount++;
+            }
+
+            function aiScript() { // this is the brain of all the enemies.
+                routChoose = []; //emptys routchoose
+                let elementCount = 0; //counter for other arrays
+                closedList = []; //emptys the closedlist
+                for (let kk = 0; kk < enemyPositions[level].length; kk++) {
+                    closedList.push([]); //adds enough containers for each enemy into closedlist
+                }
+                routeCount = 1; //idk will keep for future, dosn't do much right now
+                enemyPositions[level].forEach(Element => { //foreach enemy on current level
+                    elementCount++; //counter for other arrays
+                    let failsafe = 0; //failsafe if thae ai cant find a way to you
+                    var checkArray = [ // to countercheck past moves
                         [
-                            [Element[0], Element[1] / HA]
+                            [Element[0], Element[1] / HA] //ais starting location
                         ]
                     ]
                     var openList = [
                         [
-                            [Element[0], Element[1] / HA]
+                            [Element[0], Element[1] / HA] //ais starting location
                         ]
                     ];
-                    while (closedList[elementCount - 1].length <= 0 && failsafe < 90) { //while start
+                    while (closedList[elementCount - 1].length <= 0 && failsafe < 90) { //while runs when it hasent run for 90 times and if there hasent been a succesfull rout to the player
                         let stepOpenList = openList.length; // used to remember which to delet for the open list at the end.
                         failsafe++;
-                        for (let i = 0; i < stepOpenList; i++) { //loop1 start
-                            let left = [];
-                            let right = [];
-                            let up = [];
-                            let down = [];
-                            let b = openList[i][openList[i].length - 1]; //[13,1]//[9,1]
-                            let testLeft = true;
-                            let testRight = true;
-                            let testUp = true;
-                            let testDown = true;
+                        for (let i = 0; i < stepOpenList; i++) { //for each current path
+                            let left = []; //container for a path to the left
+                            let right = []; //container for a path to the right
+                            let up = []; //container for a path to the top
+                            let down = []; //container for a path to the bottom
+                            let b = openList[i][openList[i].length - 1]; //gets the paths last location eg. [[13,8],[12,8],[11,8],>>[10,8]<<] == [10,8]
+                            let testLeft = true; //checks for walls
+                            let testRight = true; //checks for walls
+                            let testUp = true; //checks for walls
+                            let testDown = true; //checks for walls
                             for (let oo = 0; oo < walls[level].length; oo++) { //loop2 start
-                                if (b[0] - 1 == 0) {
+                                if (b[0] - 1 == 0) { // if the move to the left goes into the left side of the map
                                     testLeft = false;
-                                } else if (b[0] - 1 == walls[level][oo][0] && b[1] == (walls[level][oo][1] / HA)) {
+                                } else if (b[0] - 1 == walls[level][oo][0] && b[1] == (walls[level][oo][1] / HA)) { // if it hits any off the walls with the move to the left
                                     testLeft = false;
                                 }
-                                if (b[0] + 1 == HA) {
+                                if (b[0] + 1 == HA) { // if the move to the left goes into the right side of the map
                                     testRight = false;
-
-                                } else if (b[0] + 1 == walls[level][oo][0] && b[1] == (walls[level][oo][1] / HA)) {
+                                } else if (b[0] + 1 == walls[level][oo][0] && b[1] == (walls[level][oo][1] / HA)) { // if it hits any off the walls with the move to the right
                                     testRight = false;
                                 }
-                                if (b[1] - 1 <= 0) {
+                                if (b[1] - 1 <= 0) { // if the move to the left goes into the top side of the map
                                     testUp = false;
-
-                                } else if (b[0] == walls[level][oo][0] && b[1] - 1 == (walls[level][oo][1] / HA)) {
+                                } else if (b[0] == walls[level][oo][0] && b[1] - 1 == (walls[level][oo][1] / HA)) { // if it hits any off the walls with the move to the top
                                     testUp = false;
                                 }
-                                if (b[1] + 1 >= verticalAmount) {
+                                if (b[1] + 1 >= verticalAmount) { // if the move to the left goes into the bottom side of the map
                                     testDown = false;
-
-                                } else if (b[0] == walls[level][oo][0] && b[1] + 1 == (walls[level][oo][1] / HA)) {
+                                } else if (b[0] == walls[level][oo][0] && b[1] + 1 == (walls[level][oo][1] / HA)) { // if it hits any off the walls with the move to the bottom
                                     testDown = false;
                                 }
                             } //loop2 end
                             if (testLeft == true) { //left
-                                Object.assign(left, openList[i])
-                                left.push([b[0] - 1, b[1]]);
+                                Object.assign(left, openList[i]) //left = current path
+                                left.push([b[0] - 1, b[1]]); // left + (last position of current path -1xpos)
                             }
                             if (testRight == true) { //right
                                 Object.assign(right, openList[i]);
-                                right.push([b[0] + 1, b[1]]);
+                                right.push([b[0] + 1, b[1]]); // right + (last position of current path +1xpos)
                             }
                             if (testUp == true) { //up
                                 Object.assign(up, openList[i]);
-                                up.push([b[0], b[1] - 1]);
+                                up.push([b[0], b[1] - 1]); // up + (last position of current path -1ypos)
                             }
                             if (testDown == true) { //down
                                 Object.assign(down, openList[i]);
-                                down.push([b[0], b[1] + 1]); // [[10,1],[11,1],[12,1],[13,1],[b[0],b[1] + 1]]
+                                down.push([b[0], b[1] + 1]); // down + (last position of current path +1ypos) eg.[[10,1],[11,1],[12,1],[13,1],>>[b[0],b[1] + 1]<<]
                             }
-                            let leftfalse = false;
-                            let rightfalse = false;
-                            let upfalse = false;
-                            let downfalse = false;
-                            for (let l = 0; l < openList.length; l++) { //loop3 start
-                                for (let c = 0; c < openList[l].length; c++) { //loop4 start
-                                    if (testLeft == false) {
+                            let leftfalse = false; //checks if there was a path that already went this way
+                            let rightfalse = false; //checks if there was a path that already went this way
+                            let upfalse = false; //checks if there was a path that already went this way
+                            let downfalse = false; //checks if there was a path that already went this way
+                            for (let l = 0; l < openList.length; l++) { //loops for all open paths
+                                for (let c = 0; c < openList[l].length; c++) { //all positions on all open paths
+                                    if (testLeft == false) { //if the wall and edge of map checks were unsufcesfull
                                         leftfalse = true;
-                                    } else if (left[left.length - 1][0] == openList[l][c][0] && left[left.length - 1][1] == openList[l][c][1]) {
+                                    } else if (left[left.length - 1][0] == openList[l][c][0] && left[left.length - 1][1] == openList[l][c][1]) { // if the next posion to the left is the same as any other path
                                         leftfalse = true;
                                     }
-                                    if (testRight == false) {
+                                    if (testRight == false) { //if the wall and edge of map checks were unsufcesfull
                                         rightfalse = true;
-                                    } else if (right[right.length - 1][0] == openList[l][c][0] && right[right.length - 1][1] == openList[l][c][1]) {
+                                    } else if (right[right.length - 1][0] == openList[l][c][0] && right[right.length - 1][1] == openList[l][c][1]) { // if the next posion to the left is the same as any other path
                                         rightfalse = true;
                                     }
-                                    if (testUp == false) {
+                                    if (testUp == false) { //if the wall and edge of map checks were unsufcesfull
                                         upfalse = true;
-                                    } else if (up[up.length - 1][0] == openList[l][c][0] && up[up.length - 1][1] == openList[l][c][1]) {
+                                    } else if (up[up.length - 1][0] == openList[l][c][0] && up[up.length - 1][1] == openList[l][c][1]) { // if the next posion to the left is the same as any other path
                                         upfalse = true;
                                     }
-                                    if (testDown == false) {
+                                    if (testDown == false) { //if the wall and edge of map checks were unsufcesfull
                                         downfalse = true;
-                                    } else if (down[down.length - 1][0] == openList[l][c][0] && down[down.length - 1][1] == openList[l][c][1]) {
+                                    } else if (down[down.length - 1][0] == openList[l][c][0] && down[down.length - 1][1] == openList[l][c][1]) { // if the next posion to the left is the same as any other path
                                         downfalse = true;
                                     }
                                 } //loop4 end
                             } //loop3 end
                             for (let l = 0; l < checkArray.length; l++) { //loop5 start
                                 for (let c = 0; c < checkArray[l].length; c++) { //loop6 start
-                                    if (testLeft == false) {
+                                    if (testLeft == false) { //if the wall and edge of map checks were unsufcesfull
                                         leftfalse = true;
-                                    } else if (left[left.length - 1][0] == checkArray[l][c][0] && left[left.length - 1][1] == checkArray[l][c][1]) {
+                                    } else if (left[left.length - 1][0] == checkArray[l][c][0] && left[left.length - 1][1] == checkArray[l][c][1]) { // if the next posion to the left is the same as any other path in the deleted paths
                                         leftfalse = true;
                                     }
-                                    if (testRight == false) {
+                                    if (testRight == false) { //if the wall and edge of map checks were unsufcesfull
                                         rightfalse = true;
-                                    } else if (right[right.length - 1][0] == checkArray[l][c][0] && right[right.length - 1][1] == checkArray[l][c][1]) {
+                                    } else if (right[right.length - 1][0] == checkArray[l][c][0] && right[right.length - 1][1] == checkArray[l][c][1]) { // if the next posion to the left is the same as any other path in the deleted paths
                                         rightfalse = true;
                                     }
-                                    if (testUp == false) {
+                                    if (testUp == false) { //if the wall and edge of map checks were unsufcesfull
                                         upfalse = true;
-                                    } else if (up[up.length - 1][0] == checkArray[l][c][0] && up[up.length - 1][1] == checkArray[l][c][1]) {
+                                    } else if (up[up.length - 1][0] == checkArray[l][c][0] && up[up.length - 1][1] == checkArray[l][c][1]) { // if the next posion to the left is the same as any other path in the deleted paths
                                         upfalse = true;
                                     }
-                                    if (testDown == false) {
+                                    if (testDown == false) { //if the wall and edge of map checks were unsufcesfull
                                         downfalse = true;
-                                    } else if (down[down.length - 1][0] == checkArray[l][c][0] && down[down.length - 1][1] == checkArray[l][c][1]) {
+                                    } else if (down[down.length - 1][0] == checkArray[l][c][0] && down[down.length - 1][1] == checkArray[l][c][1]) { // if the next posion to the left is the same as any other path in the deleted paths
                                         downfalse = true;
                                     }
                                 } //loop6 end
                             } //loop5 end
                             if (leftfalse == false) {
-                                if (left[left.length - 1][0] == playerXPosition && left[left.length - 1][1] == playerYPosition / HA) {
-                                    closedList[elementCount - 1].push(left);
+                                if (left[left.length - 1][0] == playerPos[0] && left[left.length - 1][1] == playerPos[1] / HA) { //if the next position it will put it into the closedlist instaed of the open list(closdlist == completed routs);
+                                    closedList[elementCount - 1].push(left); //push left route into closedlist
                                 } else {
-                                    openList.push(left);
+                                    openList.push(left); //push left into openlist
                                 }
                             }
                             if (rightfalse == false) {
-                                if (right[right.length - 1][0] == playerXPosition && right[right.length - 1][1] == playerYPosition / HA) {
-                                    closedList[elementCount - 1].push(right);
+                                if (right[right.length - 1][0] == playerPos[0] && right[right.length - 1][1] == playerPos[1] / HA) { //if the next position it will put it into the closedlist instaed of the open list(closdlist == completed routs);
+                                    closedList[elementCount - 1].push(right); //push right route into closedlist
                                 } else {
-                                    openList.push(right);
+                                    openList.push(right); //push right into openlist
                                 }
                             }
                             if (upfalse == false) {
-                                if (up[up.length - 1][0] == playerXPosition && up[up.length - 1][1] == playerYPosition / HA) {
-                                    closedList[elementCount - 1].push(up);
+                                if (up[up.length - 1][0] == playerPos[0] && up[up.length - 1][1] == playerPos[1] / HA) { //if the next position it will put it into the closedlist instaed of the open list(closdlist == completed routs);
+                                    closedList[elementCount - 1].push(up); //push down route into closedlist
                                 } else {
-                                    openList.push(up);
+                                    openList.push(up); //push up into openlist
                                 }
                             }
                             if (downfalse == false) {
-                                if (down[down.length - 1][0] == playerXPosition && down[down.length - 1][1] == playerYPosition / HA) {
-                                    closedList[elementCount - 1].push(down);
+                                if (down[down.length - 1][0] == playerPos[0] && down[down.length - 1][1] == playerPos[1] / HA) { //if the next position it will put it into the closedlist instaed of the open list(closdlist == completed routs);
+                                    closedList[elementCount - 1].push(down); //push up route into closedlist
                                 } else {
-                                    openList.push(down);
+                                    openList.push(down); //push down into openlist
                                 }
                             }
                         } //loop1 end
-                        for (let u = 0; u < stepOpenList; u++) {
-                            checkArray.push(openList[u]);
-                            delete openList[u];
-                        }
-                        openList = openList.filter(item => item !== undefined);
+                        for (let u = 0; u < stepOpenList; u++) { //for how many old paths there were eg. [>>old[[1,2],[2,2]]old<< , >>new[[1,2],[2,2],[3,2]]new<<]
+                            checkArray.push(openList[u]); //pushes old path into check array
+                            delete openList[u]; //delets all old paths
+                        } //for end
+                        openList = openList.filter(item => item !== undefined); // filters out all undifind varables in the array from the array
                     } //while end
                     routChoose.push(Math.floor(Math.random() * closedList[elementCount - 1].length));
                 }); //foreach end
             } //func end
 
-            function keyPressed(evt) { /// had to put multiple so there is no order issue for the movement. helps it stop feeling sticky.
-                if (evt.keyCode == UP_KEY && restartTime == timerLength || evt.keyCode == UP_ARROW_KEY && restartTime == timerLength) {
-                    upKeyPressed = true;
-                }
-                if (evt.keyCode == DOWN_KEY && restartTime == timerLength || evt.keyCode == DOWN_ARROW_KEY && restartTime == timerLength) {
-                    downKeyPressed = true;
-                }
-                if (evt.keyCode == RIGHT_KEY && restartTime == timerLength || evt.keyCode == RIGHT_ARROW_KEY && restartTime == timerLength) {
-                    rightKeyPressed = true;
-                }
-                if (evt.keyCode == LEFT_KEY && restartTime == timerLength || evt.keyCode == LEFT_ARROW_KEY && restartTime == timerLength) {
-                    leftKeyPressed = true;
-                }
-                if (evt.keyCode == R_KEY) {
-                    rKeyPressed = true;
-                }
-            }
-
-            function keyReleased(evt) {
-                if (evt.keyCode == UP_KEY || evt.keyCode == UP_ARROW_KEY) {
-                    upKeyPressed = false;
-                }
-                if (evt.keyCode == DOWN_KEY || evt.keyCode == DOWN_ARROW_KEY) {
-                    downKeyPressed = false;
-                }
-                if (evt.keyCode == RIGHT_KEY || evt.keyCode == RIGHT_ARROW_KEY) {
-                    rightKeyPressed = false;
-                }
-                if (evt.keyCode == LEFT_KEY || evt.keyCode == LEFT_ARROW_KEY) {
-                    leftKeyPressed = false;
-                }
-                if (evt.keyCode == R_KEY) {
-                    rKeyPressed = false;
-                    restartTime = timerLength;
-                }
-            }
-
-            function drawPlayer() { // draws the player. sort of
-                let past = true;
-                let future = true;
-                for (let hh = 0; hh < enemyPositions[level].length; hh++) {
-                    if (wallCheckX == enemyPositions[level][hh][0] && wallCheckY == enemyPositions[level][hh][1]) {
-                        past = false;
+            function testAiPaths() { //if you run this in the console when there are enemies on screen you can see there path
+                for (let i = 0; i < enemyPositions[level].length; i++) {
+                    for (let o = 1; o < closedList[i][routChoose[i]].length; o++) {
+                        colorRect(grid[closedList[i][routChoose[i]][o][0]][0], grid[(closedList[i][routChoose[i]][o][1] * HA)][1], horizontalsize, verticalsize, "rgb(0,0,255,0.2)");
                     }
                 }
-                if (playerXPosition >= HA) {
+            } //func end
+
+            function keyPressed(evt) { //checks if keys have been pressed
+                if (evt.keyCode == UP_KEY && restartTime == timerLength || evt.keyCode == UP_ARROW_KEY && restartTime == timerLength) { //up
+                    upKeyPressed = true;
+                }
+                if (evt.keyCode == DOWN_KEY && restartTime == timerLength || evt.keyCode == DOWN_ARROW_KEY && restartTime == timerLength) { //down
+                    downKeyPressed = true;
+                }
+                if (evt.keyCode == RIGHT_KEY && restartTime == timerLength || evt.keyCode == RIGHT_ARROW_KEY && restartTime == timerLength) { //right
+                    rightKeyPressed = true;
+                }
+                if (evt.keyCode == LEFT_KEY && restartTime == timerLength || evt.keyCode == LEFT_ARROW_KEY && restartTime == timerLength) { //left
+                    leftKeyPressed = true;
+                }
+                if (evt.keyCode == R_KEY) { //restart
+                    rKeyPressed = true;
+                }
+                if (evt.keyCode == SHIFT_KEY) { //shift
+                    shiftKeyPressed = true;
+                }
+                if (evt.keyCode > 0 && playerStatsMenu == false) { //runs if the starting menu is open and a key is pressed
+                    let maxDist = CanvasWidth / 7 * 3; //limits how much you can right
+                    if (playerStats[0].length == 0) { //if theres no word yet
+                        if (evt.keyCode == 8) { //if delet/backspace is pressed
+                            playerStats[0].pop(); //delet last letter
+                        } else if (evt.keyCode == 13) { //if enter key pressed
+                            menuClose = true; //close menu
+                        } else if (shiftKeyPressed == true && evt.keyCode !== 16) { //if shift is pressed
+                            playerStats[0].push(String.fromCharCode(evt.keyCode)); //push letter pressed in caps
+                        } else if (evt.keyCode !== 16) { //not shift pressed
+                            playerStats[0].push(String.fromCharCode(evt.keyCode).toLowerCase()); //write letter in lowercase
+                        }
+                    } else {
+                        if (evt.keyCode == 8) { //if delet/backspace is pressed
+                            if (playerStats[0][0].length == 1) { //if theres one letter in the word
+                                playerStats[0][0] = ""; //will becom nothing
+                            } else if (playerStats[0][0].length !== 0) { //if theres more than one letter
+                                backSpaceContainer = playerStats[0][0][0]; // backspacecontainer will be the first letter in the word
+                                for (let l = 1; l < playerStats[0][0].length - 1; l++) { //runs for every letter in the word instead of the first letter and the last letter
+                                    backSpaceContainer += playerStats[0][0][l]; //will push every letter exept the first letter and the last letter
+                                }
+                                playerStats[0][0] = backSpaceContainer; //will have one less letter now
+                            }
+                        } else if (evt.keyCode == 13) { //if enter key pressed
+                            menuClose = true; //close menu
+                        } else if (shiftKeyPressed == true && evt.keyCode !== 16 && canvasContext.measureText((playerStats[0][0])).width <= maxDist) { // if shift key pressed and theres still space for more letters
+                            playerStats[0][0] += (String.fromCharCode(evt.keyCode)); //adds capital letter
+                        } else if (evt.keyCode !== 16 && canvasContext.measureText((playerStats[0][0])).width <= maxDist) { // if shift key not pressed and theres still space for more letters
+                            playerStats[0][0] += (String.fromCharCode(evt.keyCode).toLowerCase()); //adds lowercase letter
+                        }
+                    }
+                } //if end
+            } //func end
+
+            function keyReleased(evt) { //key releas function
+                if (evt.keyCode == UP_KEY || evt.keyCode == UP_ARROW_KEY) { //up
+                    upKeyPressed = false;
+                }
+                if (evt.keyCode == DOWN_KEY || evt.keyCode == DOWN_ARROW_KEY) { //down
+                    downKeyPressed = false;
+                }
+                if (evt.keyCode == RIGHT_KEY || evt.keyCode == RIGHT_ARROW_KEY) { //right
+                    rightKeyPressed = false;
+                }
+                if (evt.keyCode == LEFT_KEY || evt.keyCode == LEFT_ARROW_KEY) { //left
+                    leftKeyPressed = false;
+                }
+                if (evt.keyCode == SHIFT_KEY) { //shift
+                    shiftKeyPressed = false;
+                }
+                if (evt.keyCode == R_KEY) { //restart
+                    rKeyPressed = false;
+                    restartTime = timerLength; //resets the restart timer if let go
+                }
+            } //func end
+
+            function drawPlayer() { // draws the player
+                let past = true; //check variable
+                let future = true; //check variable
+                for (let hh = 0; hh < enemyPositions[level].length; hh++) { //for all enemies
+                    if (wallCheckX == enemyPositions[level][hh][0] && wallCheckY == enemyPositions[level][hh][1]) { //checks if the players past position is the same as an ai's future position
+                        past = false;
+                        break; //breaks out of the loop early
+                    }
+                }//for end
+                if (playerPos[0] >= HA) { //chcks if the player is going to walk through the door
                     future = false;
                 }
                 if (past == true) {
                     imgLoad(floorImg, grid[wallCheckX][0], grid[wallCheckY][1], horizontalsize, verticalsize); //draws the background on where the player was
                 }
                 if (future == true) {
-                    imgLoad(floorImg, grid[playerXPosition][0], grid[playerYPosition][1], horizontalsize, verticalsize); //draws the background on where the player will be
+                    imgLoad(floorImg, grid[playerPos[0]][0], grid[playerPos[1]][1], horizontalsize, verticalsize); //draws the background on where the player will be
                 }
-                imgLoad2(playerImgMain, testcount * 40, moveFrame * 40, playerSpriteWidth, playerSpriteHeight, grid[wallCheckX][0] + (testcount * 10 * (playerXPosition - wallCheckX)), grid[wallCheckY][1] + (testcount * 10 * ((playerYPosition - wallCheckY) / HA)), horizontalsize, verticalsize); // draws in bettween pictures of the player. to make it feel smoother
-            }
-            var levelloadTimer = 0;
+                imgLoad2(playerImgMain, testcount * spriteSize, moveFrame * spriteSize, spriteSize, spriteSize, grid[wallCheckX][0] + (testcount * (horizontalsize / 4) * (playerPos[0] - wallCheckX)), grid[wallCheckY][1] + (testcount * (verticalsize / 4) * ((playerPos[1] - wallCheckY) / HA)), horizontalsize, verticalsize); // draws the players walking animation
+            }//func end
 
             function playerMovement() { // this changes the player's position
-                //use + or - 10 to move up or down.
-                // use =  or - 1 to mave left to right.
-                if (levelloadTimer > 0) {
+                if (levelloadTimer > 0) { // so you can't move for the fiirst few seconds of loading into a level
                     levelloadTimer--;
                 }
-                if (levelloadTimer <= 0) {
-                    wallCheckY = playerYPosition; // to remember past Yposition
-                    wallCheckX = playerXPosition; // to remember past Xposition
-
+                if (levelloadTimer <= 0) { // so you can't move for the fiirst few seconds of loading into a level
+                    wallCheckY = playerPos[1]; // to remember past Yposition
+                    wallCheckX = playerPos[0]; // to remember past Xposition
                     if (upKeyPressed == true && timerMove >= 5) {
-                        playerYPosition -= HA;
+                        playerPos[1] -= HA; //changes the players position to one tile to the top
                         gamerun = true; // lets the mainloop draw the rest of the game
                         timerMove = 0; // resets the timer for next move
-                        moveFrame = 3;
+                        moveFrame = 3; //sets which movement animation to use
                     }
                     if (downKeyPressed == true && timerMove >= 5) {
-                        playerYPosition += HA;
+                        playerPos[1] += HA; //changes the players position to one tile to the bottom
                         gamerun = true; // lets the mainloop draw the rest of the game
                         timerMove = 0; // resets the timer for next move
-                        moveFrame = 4;
+                        moveFrame = 4; //sets which movement animation to use
                     }
                     if (leftKeyPressed == true && timerMove >= 5) {
-                        playerXPosition -= 1;
+                        playerPos[0] -= 1; //changes the players position to one tile to the left
                         gamerun = true; // lets the mainloop draw the rest of the game
                         timerMove = 0; // resets the timer for next move
-                        moveFrame = 2;
+                        moveFrame = 2; //sets which movement animation to use
                     }
                     if (rightKeyPressed == true && timerMove >= 5) {
-                        playerXPosition += 1;
+                        playerPos[0] += 1; //changes the players position to one tile to the right
                         gamerun = true; // lets the mainloop draw the rest of the game
                         timerMove = 0; // resets the timer for next move
                         moveFrame = 1; //sets which movement animation to use
                     }
                     for (let i = 0; i < walls[level].length; i++) {
-                        if (playerXPosition == walls[level][i][0] && playerYPosition == walls[level][i][1] && walls[level][i][2] !== 2) { // if the players position is the same as the walls position then it will turn it back to its position befor hand.
-                            playerXPosition = wallCheckX; //changes the poition to its previouse state
-                            playerYPosition = wallCheckY; //changes the poition to its previouse state
-                            gamerun = false;
+                        if (playerPos[0] == walls[level][i][0] && playerPos[1] == walls[level][i][1] && walls[level][i][2] !== 2) { // if the players position is the same as the walls position then it will turn it back to its position befor hand.
+                            playerPos[0] = wallCheckX; //changes the poition to its previouse state(so the player dosn't move)
+                            playerPos[1] = wallCheckY; //changes the poition to its previouse state(so the player dosn't move)
+                            gamerun = false;//lets the game not run
+                            break;//stops the for loop early
                         }
-                    }
+                    }//for end
                 }
-            }
+            }//func end
 
-            var grid = []; // the array for the grids
-            function creatGrid() { // creates the coordinates for all the blocks
-                for (let c = 0; c < verticalAmount; c++) {
-                    for (let i = 0; i < HA; i++) {
+            function creatGrid() { // creates the coordinates for all the tiles
+                for (let c = 0; c < verticalAmount; c++) {// how many rows there are
+                    for (let i = 0; i < HA; i++) {//how many collums there are
                         grid.push([(horizontalsize * (i)), (verticalsize * (c))]);
-                    }
-                }
-            }
+                    }//for end
+                }//for end
+            }//func end
 
-            function drawGrid() { // draws all the black squares/background
-                for (let c = 0; c < grid.length; c++) {
-                    imgLoad(floorImg, grid[c][0], grid[c][1], horizontalsize, verticalsize);
-                }
-            }
-
-            function difference(a, b) { // checks the difference in values
-                return Math.abs(a - b);
-            }
+            function drawGrid() { // draws all the flooor tiles on the current level
+                for (let c = 0; c < grid.length; c++) {//for all the tiles
+                    imgLoad(floorImg, grid[c][0], grid[c][1], horizontalsize, verticalsize);//draws the floor tile
+                }//for end
+            }//func end
 
             function colorRect(x, y, w, h, c) { // function used to draw simple blocks with colour
-                canvasContext.fillStyle = c;
-                canvasContext.fillRect(x, y, w, h)
-            }
+                canvasContext.fillStyle = c;//the colour
+                canvasContext.fillRect(x, y, w, h)//(xpos, ypos, width, height)
+            }//func end
 
-            function drawText(x, y, t, f, c, d) {
-                canvasContext.fillStyle = c;
-                canvasContext.textAlign = d;
-                canvasContext.font = f;
-                canvasContext.fillText(t, x, y);
-            }
+            function drawText(x, y, t, f, c, d) {//draws the text on the canvas
+                canvasContext.fillStyle = c;//color
+                canvasContext.textAlign = d;//how its centered (left, right, center)
+                canvasContext.font = f;//font and text size(px)
+                canvasContext.fillText(t, x, y);//(text, xpos, ypos)
+            }//func end
 
-            function imgLoad(src, x, y, w, h) { // function to draw an image
-                canvasContext.drawImage(src, x, y, w, h);
-            } // end of imgLoad func
+            function imgLoad(src, x, y, w, h) { // function to draw a full image
+                canvasContext.drawImage(src, x, y, w, h);//(image variable, xpos, ypos, width, height)
+            } // func end
 
-            function imgLoad2(src, x, y, w, h, dx, dy, dWidth, dHeight) { // function to draw a sprite sheet
-                canvasContext.drawImage(src, x, y, w, h, dx, dy, dWidth, dHeight);
+            function imgLoad2(src, x, y, w, h, dx, dy, dWidth, dHeight) { // function to draw a section of an images
+                canvasContext.drawImage(src, x, y, w, h, dx, dy, dWidth, dHeight);//(image variable, >> image input xpos, image input ypos, image input width, image input height <<, >> canvas xpos, canvas ypos, canvas width, canvs height <<)
             } // end of imgLoad2 func
-
-            // this i wanted to keep just in case I need it
-            //                        var colors1 = Math.floor(Math.random()*255);
-            //                        var colors2 = Math.floor(Math.random()*255);
-            //                        var colors3 = Math.floor(Math.random()*255);
-            //                        var finalColor = 'rgba(' + colors1 + ',' + colors2 + ',' + colors3 + ',1)'; 
-            //                    grid.push(finalColor)
-            const enemyStartPos = [
-                [ //0
-                    [8, 5 * HA, 0, Math.floor(Math.random() * 10), [0, 0], true],
-
+            const enemyStartPos = [// all enemies
+                [ //level 0
+                    [8, 5 * HA, 0, Math.floor(Math.random() * 10), [0, 0], true],//[xpos, ypos, enemy id, animation counter, [xpos past, ypos past], movement check]
                 ],
-                [ //1
+                [ //level 1
                     [8, 5 * HA, 0, Math.floor(Math.random() * 10), [0, 0], true],
                     [8, 4 * HA, 0, Math.floor(Math.random() * 10), [0, 0], true],
 
                 ],
-                [ //2
+                [ //level 2
                     [9, 4 * HA, 0, Math.floor(Math.random() * 10), [0, 0], true],
                     [9, 5 * HA, 0, Math.floor(Math.random() * 10), [0, 0], true],
                     [9, 6 * HA, 0, Math.floor(Math.random() * 10), [0, 0], true],
                     [6, 4 * HA, 1, Math.floor(Math.random() * 10), [0, 0], true],
                     [6, 5 * HA, 1, Math.floor(Math.random() * 10), [0, 0], true],
-
                 ],
-                [ //3
-                    [7, 1 * HA, 1, Math.floor(Math.random() * 10), [0, 0], true], //[x, y, enemy type, animation start timer, [pset x pos, past y pos], movement true/false]
+                [ //level 3
+                    [7, 1 * HA, 1, Math.floor(Math.random() * 10), [0, 0], true], 
                     [7, 7 * HA, 0, Math.floor(Math.random() * 10), [0, 0], true],
                     [9, 1 * HA, 0, Math.floor(Math.random() * 10), [0, 0], true]
                 ],
-                [ //brsd//4
+                [ //level 4
                     [1, 8 * HA, 0, Math.floor(Math.random() * 10), [0, 0], true],
                     [1, 7 * HA, 0, Math.floor(Math.random() * 10), [0, 0], true],
                     [2, 8 * HA, 0, Math.floor(Math.random() * 10), [0, 0], true],
@@ -693,7 +804,7 @@
                     [11, 8 * HA, 0, Math.floor(Math.random() * 10), [0, 0], true],
                     [3, 3 * HA, 1, Math.floor(Math.random() * 10), [0, 0], true],
                 ],
-                [ //5
+                [ //level 5
                     [4, 5 * HA, 1, Math.floor(Math.random() * 10), [0, 0], true],
                     [4, 4 * HA, 0, Math.floor(Math.random() * 10), [0, 0], true],
                     [5, 5 * HA, 0, Math.floor(Math.random() * 10), [0, 0], true],
@@ -704,40 +815,59 @@
                     [7, 8 * HA, 0, Math.floor(Math.random() * 10), [0, 0], true],
                     [12, 1 * HA, 0, Math.floor(Math.random() * 10), [0, 0], true],
                     [9, 1 * HA, 0, Math.floor(Math.random() * 10), [0, 0], true],
-
                 ],
-                [ //6
-                    [8, 1 * HA, 0, Math.floor(Math.random() * 10), [0, 0], true],
+                [ //level 6
+                    [5, 8 * HA, 1, Math.floor(Math.random() * 10), [0, 0], true],
+                    [7, 3 * HA, 1, Math.floor(Math.random() * 10), [0, 0], true],
+                    [6, 8 * HA, 0, Math.floor(Math.random() * 10), [0, 0], true],
+                    [6, 7 * HA, 0, Math.floor(Math.random() * 10), [0, 0], true],
+                    [7, 4 * HA, 0, Math.floor(Math.random() * 10), [0, 0], true],
+                    [8, 4 * HA, 0, Math.floor(Math.random() * 10), [0, 0], true],
+                    [9, 4 * HA, 0, Math.floor(Math.random() * 10), [0, 0], true],
+                    [9, 7 * HA, 0, Math.floor(Math.random() * 10), [0, 0], true],
+                    [9, 1 * HA, 0, Math.floor(Math.random() * 10), [0, 0], true],
+                    [9, 2 * HA, 0, Math.floor(Math.random() * 10), [0, 0], true],
+                    [10, 2 * HA, 0, Math.floor(Math.random() * 10), [0, 0], true],
+                    [10, 1 * HA, 0, Math.floor(Math.random() * 10), [0, 0], true],
+                ],
+                [//level 7
+                    [1, 8 * HA, 0, Math.floor(Math.random() * 10), [0, 0], true],
+                    [4, 8 * HA, 0, Math.floor(Math.random() * 10), [0, 0], true],
+                    [6, 7 * HA, 0, Math.floor(Math.random() * 10), [0, 0], true],
+                    [1, 6 * HA, 0, Math.floor(Math.random() * 10), [0, 0], true],
+                    [1, 7 * HA, 0, Math.floor(Math.random() * 10), [0, 0], true],
+                    [3, 5 * HA, 1, Math.floor(Math.random() * 10), [0, 0], true],
+                    [2, 8 * HA, 0, Math.floor(Math.random() * 10), [0, 0], true],
+                    [3, 8 * HA, 0, Math.floor(Math.random() * 10), [0, 0], true],
+                    [6, 6 * HA, 0, Math.floor(Math.random() * 10), [0, 0], true],
+                    [3, 6 * HA, 1, Math.floor(Math.random() * 10), [0, 0], true],
+                    [6, 8 * HA, 0, Math.floor(Math.random() * 10), [0, 0], true],
+                    [5, 8 * HA, 0, Math.floor(Math.random() * 10), [0, 0], true],
                 ],
             ];
 
-
-            function retry() {
-                defeat = false;
-                gamerun = false;
-                onetick = true;
-                levelsetter();
-
+            function retry() { //restarts current level
+                retries++;//adds 1 to the retry counter
+                defeat = false;//removes the death screen
+                gamerun = false;//makes the game not run abnd be idle
+                onetick = true;//resets a variable
+                levelsetter();//reloads the level
             }
 
-
-
-            var playerStartPos = [
-                [1, 5 * HA], //0
-                [1, 5 * HA], //1
-                [1, 5 * HA], //2
-                [3, 8 * HA], //3
-                [3, 8 * HA], //4
-                [1, 5 * HA], //5
-                [1, 5 * HA], //6
+            const playerStartPos = [ //all player starting positions for each level
+                [1, 5 * HA], //level 0 [xpos, ypos]
+                [1, 5 * HA], //level 1
+                [1, 5 * HA], //level 2
+                [3, 8 * HA], //level 3
+                [3, 8 * HA], //level 4
+                [1, 5 * HA], //level 5
+                [1, 5 * HA], //level 6
+                [1, 4 * HA], //level 7
             ];
 
-            var level = 0;
-            //            var level = Math.floor((Math.random() * 6));
-            // this is all the walls
-            var wallsStartPoss = [
-                [ //0
-                    [1, 6 * HA, 0, 4, 'pit', []],
+            var wallsStartPoss = [// this is all the walls
+                [ //level 0
+                    [1, 6 * HA, 0, 4, 'pit', []],// [xpos, ypos, image input xpos, image input ypos, type of wall, [any needed corner adjustments]]
                     [2, 6 * HA, 0, 4, 'pit', []],
                     [3, 6 * HA, 0, 4, 'pit', []],
                     [4, 6 * HA, 0, 4, 'pit', []],
@@ -763,10 +893,10 @@
                     [11, 4 * HA, 0, 4, 'pit', []],
                     [12, 4 * HA, 0, 4, 'pit', []],
                     [13, 4 * HA, 0, 4, 'pit', []],
-                    [14, 4 * HA, 0, 1, 'wall', []],
-                    [14, 5 * HA, 1, 1, 'door', []],
+                    [14, 4 * HA, 0, 1, 'wall', []],//special manual walls for doors
+                    [14, 5 * HA, 1, 1, 'door', []],//special manual walls for doors
                 ],
-                [ //1
+                [ //level 1
                     [1, 6 * HA, 0, 4, 'pit', []],
                     [2, 6 * HA, 0, 4, 'pit', []],
                     [3, 6 * HA, 0, 4, 'pit', []],
@@ -793,10 +923,10 @@
                     [11, 3 * HA, 0, 4, 'pit', []],
                     [12, 3 * HA, 0, 4, 'pit', []],
                     [13, 3 * HA, 0, 4, 'pit', []],
-                    [14, 4 * HA, 1, 1, 'door', []],
-                    [14, 5 * HA, 1, 1, 'door', []],
+                    [14, 4 * HA, 1, 1, 'door', []],//special manual walls for doors
+                    [14, 5 * HA, 1, 1, 'door', []],//special manual walls for doors
                 ],
-                [ //2
+                [ //level 2
                     [1, 7 * HA, 0, 4, 'pit', []],
                     [2, 7 * HA, 0, 4, 'pit', []],
                     [3, 7 * HA, 0, 4, 'pit', []],
@@ -830,10 +960,10 @@
                     [8, 3 * HA, 0, 4, 'pit', []],
                     [9, 3 * HA, 0, 4, 'pit', []],
                     [10, 3 * HA, 0, 4, 'pit', []],
-                    [14, 4 * HA, 1, 1, 'door', []],
-                    [14, 5 * HA, 1, 1, 'door', []],
+                    [14, 4 * HA, 1, 1, 'door', []],//special manual walls for doors
+                    [14, 5 * HA, 1, 1, 'door', []],//special manual walls for doors
                 ],
-                [ //3
+                [ //level 3
                     [2, 2 * HA, 0, 4, 'pit', []],
                     [3, 2 * HA, 0, 4, 'pit', []],
                     [4, 2 * HA, 0, 4, 'pit', []],
@@ -873,10 +1003,10 @@
                     [6, 6 * HA, 0, 4, 'pit', []],
                     [6, 5 * HA, 0, 4, 'pit', []],
                     [6, 4 * HA, 0, 4, 'pit', []],
-                    [14, 4 * HA, 1, 1, 'door', []],
-                    [14, 5 * HA, 1, 1, 'door', []],
+                    [14, 4 * HA, 1, 1, 'door', []],//special manual walls for doors
+                    [14, 5 * HA, 1, 1, 'door', []],//special manual walls for doors
                 ],
-                [ //4
+                [ //level 4
                     [3, 7 * HA, 0, 4, 'pit', []],
                     [4, 7 * HA, 0, 4, 'pit', []],
                     [2, 5 * HA, 0, 4, 'pit', []],
@@ -920,10 +1050,10 @@
                     [11, 6 * HA, 0, 4, 'pit', []],
                     [12, 6 * HA, 0, 4, 'pit', []],
                     [13, 6 * HA, 0, 4, 'pit', []],
-                    [14, 4 * HA, 1, 1, 'door', []],
-                    [14, 5 * HA, 1, 1, 'door', []],
+                    [14, 4 * HA, 1, 1, 'door', []],//special manual walls for doors
+                    [14, 5 * HA, 1, 1, 'door', []],//special manual walls for doors
                 ],
-                [ //5.2
+                [ //level 5
                     [2, 2 * HA, 0, 4, 'pit', []],
                     [3, 2 * HA, 0, 4, 'pit', []],
                     [3, 3 * HA, 0, 4, 'pit', []],
@@ -965,173 +1095,264 @@
                     [10, 2 * HA, 0, 4, 'pit', []],
                     [11, 2 * HA, 0, 4, 'pit', []],
                     [12, 2 * HA, 0, 4, 'pit', []],
-                    [14, 4 * HA, 1, 1, 'door', []],
-                    [14, 5 * HA, 0, 1, 'wall', []],
+                    [14, 4 * HA, 1, 1, 'door', []],//special manual walls for doors
+                    [14, 5 * HA, 0, 1, 'wall', []],//special manual walls for doors
                 ],
-                [ //6
-                    [12, 2 * HA, 0, 4, 'pit', []],
+                [ //level 6
+                    [1, 1 * HA, 0, 4, 'pit', []],
+                    [1, 2 * HA, 0, 4, 'pit', []],
+                    [1, 3 * HA, 0, 4, 'pit', []],
+                    [2, 1 * HA, 0, 4, 'pit', []],
+                    [2, 5 * HA, 0, 4, 'pit', []],
+                    [3, 5 * HA, 0, 4, 'pit', []],
+                    [4, 5 * HA, 0, 4, 'pit', []],
+                    [2, 7 * HA, 0, 4, 'pit', []],
+                    [3, 7 * HA, 0, 4, 'pit', []],
+                    [4, 4 * HA, 0, 4, 'pit', []],
+                    [4, 3 * HA, 0, 4, 'pit', []],
+                    [4, 2 * HA, 0, 4, 'pit', []],
+                    [5, 2 * HA, 0, 4, 'pit', []],
+                    [6, 2 * HA, 0, 4, 'pit', []],
+                    [6, 3 * HA, 0, 4, 'pit', []],
+                    [6, 4 * HA, 0, 4, 'pit', []],
+                    [6, 5 * HA, 0, 4, 'pit', []],
+                    [5, 5 * HA, 0, 4, 'pit', []],
+                    [5, 4 * HA, 0, 4, 'pit', []],
+                    [5, 3 * HA, 0, 4, 'pit', []],
+                    [5, 6 * HA, 0, 4, 'pit', []],
+                    [5, 7 * HA, 0, 4, 'pit', []],
+                    [7, 7 * HA, 0, 4, 'pit', []],
+                    [7, 8 * HA, 0, 4, 'pit', []],
+                    [7, 5 * HA, 0, 4, 'pit', []],
+                    [8, 5 * HA, 0, 4, 'pit', []],
+                    [9, 5 * HA, 0, 4, 'pit', []],
+                    [9, 6 * HA, 0, 4, 'pit', []],
+                    [11, 6 * HA, 0, 4, 'pit', []],
+                    [12, 6 * HA, 0, 4, 'pit', []],
+                    [13, 6 * HA, 0, 4, 'pit', []],
+                    [11, 7 * HA, 0, 4, 'pit', []],
+                    [12, 7 * HA, 0, 4, 'pit', []],
+                    [13, 7 * HA, 0, 4, 'pit', []],
+                    [11, 8 * HA, 0, 4, 'pit', []],
+                    [12, 8 * HA, 0, 4, 'pit', []],
+                    [13, 8 * HA, 0, 4, 'pit', []],
+                    [13, 1 * HA, 0, 4, 'pit', []],
+                    [13, 2 * HA, 0, 4, 'pit', []],
+                    [11, 3 * HA, 0, 4, 'pit', []],
+                    [10, 3 * HA, 0, 4, 'pit', []],
+                    [9, 3 * HA, 0, 4, 'pit', []],
+                    [8, 3 * HA, 0, 4, 'pit', []],
+                    [8, 2 * HA, 0, 4, 'pit', []],
+                    [8, 1 * HA, 0, 4, 'pit', []],
+                    [14, 4 * HA, 1, 1, 'door', []],//special manual walls for doors
+                    [14, 5 * HA, 0, 1, 'wall', []],//special manual walls for doors
+                ],
+                [ //level 7
+                    [14, 5 * HA, 1, 1, 'door', []],//special manual walls for doors
+                    [14, 4 * HA, 0, 1, 'wall', []],//special manual walls for doors
+                    [1, 5 * HA, 0, 4, 'pit', []],
+                    [2, 5 * HA, 0, 4, 'pit', []],
+                    [2, 4 * HA, 0, 4, 'pit', []],
+                    [2, 3 * HA, 0, 4, 'pit', []],
+                    [2, 2 * HA, 0, 4, 'pit', []],
+                    [3, 2 * HA, 0, 4, 'pit', []],
+                    [4, 2 * HA, 0, 4, 'pit', []],
+                    [5, 2 * HA, 0, 4, 'pit', []],
+                    [6, 2 * HA, 0, 4, 'pit', []],
+                    [7, 2 * HA, 0, 4, 'pit', []],
+                    [8, 2 * HA, 0, 4, 'pit', []],
+                    [9, 2 * HA, 0, 4, 'pit', []],
+                    [10, 2 * HA, 0, 4, 'pit', []],
+                    [9, 3 * HA, 0, 4, 'pit', []],
+                    [9, 4 * HA, 0, 4, 'pit', []],
+                    [9, 5 * HA, 0, 4, 'pit', []],
+                    [9, 6 * HA, 0, 4, 'pit', []],
+                    [9, 7 * HA, 0, 4, 'pit', []],
+                    [10, 4 * HA, 0, 4, 'pit', []],
+                    [11, 4 * HA, 0, 4, 'pit', []],
+                    [11, 7 * HA, 0, 4, 'pit', []],
+                    [12, 8 * HA, 0, 4, 'pit', []],
+                    [13, 8 * HA, 0, 4, 'pit', []],
+                    [13, 7 * HA, 0, 4, 'pit', []],
+                    [12, 7 * HA, 0, 4, 'pit', []],
+                    [7, 8 * HA, 0, 4, 'pit', []],
+                    [7, 7 * HA, 0, 4, 'pit', []],
+                    [7, 6 * HA, 0, 4, 'pit', []],
+                    [7, 5 * HA, 0, 4, 'pit', []],
+                    [7, 4 * HA, 0, 4, 'pit', []],
+                    [6, 4 * HA, 0, 4, 'pit', []],
+                    [5, 4 * HA, 0, 4, 'pit', []],
+                    [4, 4 * HA, 0, 4, 'pit', []],
+                    [4, 5 * HA, 0, 4, 'pit', []],
+                    [5, 5 * HA, 0, 4, 'pit', []],
+                    [6, 5 * HA, 0, 4, 'pit', []],
+                    [2, 7 * HA, 0, 4, 'pit', []],
+                    [3, 7 * HA, 0, 4, 'pit', []],
+                    [4, 7 * HA, 0, 4, 'pit', []],
+                    [5, 7 * HA, 0, 4, 'pit', []],
                 ]
             ];
-            var walls;
 
-            function loadLevels() { // creates walls and more info
-                for (let tt = 0; tt < wallsStartPoss.length; tt++) { //automaticly creates all the walls on any new level
+            function loadLevels() { // creates all extra non-manual walls
+                for (let tt = 0; tt < wallsStartPoss.length; tt++) { //automaticly creates all the border walls on every level
                     for (let i = 0; i < verticalAmount; i++) { //left and right walls
-                        let leftwall = 0;
-                        let rightwall = 1;
-                        if (i == 0) {
+                        let leftwall = 0;//left wall image id
+                        let rightwall = 1;//right wall image id
+                        if (i == 0) {//top corner walls
                             leftwall = 5;
                             rightwall = 6;
                         }
-                        if (i == verticalAmount - 1) {
+                        if (i == verticalAmount - 1) {//bottom corner walls
                             leftwall = 7;
                             rightwall = 8;
                         }
 
                         if (i !== 5 && i !== 4) { // leaves a 2 gap for the player to walk through
-                            wallsStartPoss[tt].push([0, i * HA, 0, leftwall, 'wall', []], [HA - 1, i * HA, 0, rightwall, 'wall', []]);
+                            wallsStartPoss[tt].push([0, i * HA, 0, leftwall, 'wall', []], [HA - 1, i * HA, 0, rightwall, 'wall', []]);//make left and right walls
                         } else {
-                            wallsStartPoss[tt].push([0, i * HA, 0, leftwall, 'wall', []]);
+                            wallsStartPoss[tt].push([0, i * HA, 0, leftwall, 'wall', []]);//only make left walls
                         }
                     }
                     for (let i = 0; i < HA; i++) { //top and bottom walls
-                        let leftwall = 2;
-                        let rightwall = 3;
-                        if (i == 0) {
-                            leftwall = 5;
-                            rightwall = 7;
+                        let topWall = 2;//top wall image id
+                        let bottomWall = 3;//bottom wall image id
+                        if (i == 0) {//left corners
+                            topWall = 5;
+                            bottomWall = 7;
                         }
-                        if (i == HA - 1) {
-                            leftwall = 6;
-                            rightwall = 8;
+                        if (i == HA - 1) {//right corners
+                            topWall = 6;
+                            bottomWall = 8;
                         }
-                        wallsStartPoss[tt].push([i, 0 * HA, 0, leftwall, 'wall', []], [i, (verticalAmount - 1) * HA, 0, rightwall, 'wall', []]);
+                        wallsStartPoss[tt].push([i, 0 * HA, 0, topWall, 'wall', []], [i, (verticalAmount - 1) * HA, 0, bottomWall, 'wall', []]);//push both top and bottom walls
                     }
                 }
-                for (let uu = 0; uu < wallsStartPoss.length; uu++) { //checks all walls
-                    for (let tt = 0; tt < wallsStartPoss[uu].length; tt++) { //checks if any wall is next to it
+                for (let uu = 0; uu < wallsStartPoss.length; uu++) { //checks all walls for any surrounding walls for a connecting sheet of images
+                    for (let tt = 0; tt < wallsStartPoss[uu].length; tt++) { //for each wall will check if theres any walls next to it
+                        //checking variables
                         let leftcheck = false;
                         let rightcheck = false;
                         let upcheck = false;
                         let downcheck = false;
+                        //checks for any walls adjacent to this wall
                         let leftUpcheck = false;
                         let rightUpcheck = false;
                         let leftDowncheck = false;
                         let rightDowncheck = false;
                         for (let yy = 0; yy < wallsStartPoss[uu].length; yy++) { //checks all wals positions to its corners and sides
-                            if (wallsStartPoss[uu][yy][4] == 'pit') {
-                                if (wallsStartPoss[uu][tt][0] + 1 == wallsStartPoss[uu][yy][0] && wallsStartPoss[uu][tt][1] == wallsStartPoss[uu][yy][1]) {
+                            if (wallsStartPoss[uu][yy][4] == 'pit') {//if the wall is a pit that can connect to other pits
+                                if (wallsStartPoss[uu][tt][0] + 1 == wallsStartPoss[uu][yy][0] && wallsStartPoss[uu][tt][1] == wallsStartPoss[uu][yy][1]) {//checks if theres a wall to the right
                                     rightcheck = true;
                                 }
-                                if (wallsStartPoss[uu][tt][0] - 1 == wallsStartPoss[uu][yy][0] && wallsStartPoss[uu][tt][1] == wallsStartPoss[uu][yy][1]) {
+                                if (wallsStartPoss[uu][tt][0] - 1 == wallsStartPoss[uu][yy][0] && wallsStartPoss[uu][tt][1] == wallsStartPoss[uu][yy][1]) {//checks if theres a wall to the left
                                     leftcheck = true;
                                 }
-                                if (wallsStartPoss[uu][tt][0] == wallsStartPoss[uu][yy][0] && wallsStartPoss[uu][tt][1] + HA == wallsStartPoss[uu][yy][1]) {
+                                if (wallsStartPoss[uu][tt][0] == wallsStartPoss[uu][yy][0] && wallsStartPoss[uu][tt][1] + HA == wallsStartPoss[uu][yy][1]) {//checks if theres a wall to the bottom
                                     downcheck = true;
                                 }
-                                if (wallsStartPoss[uu][tt][0] == wallsStartPoss[uu][yy][0] && wallsStartPoss[uu][tt][1] - HA == wallsStartPoss[uu][yy][1]) {
+                                if (wallsStartPoss[uu][tt][0] == wallsStartPoss[uu][yy][0] && wallsStartPoss[uu][tt][1] - HA == wallsStartPoss[uu][yy][1]) {//checks if theres a wall to the top
                                     upcheck = true;
                                 }
-                                if (wallsStartPoss[uu][tt][0] - 1 == wallsStartPoss[uu][yy][0] && wallsStartPoss[uu][tt][1] - HA == wallsStartPoss[uu][yy][1]) {
+                                if (wallsStartPoss[uu][tt][0] - 1 == wallsStartPoss[uu][yy][0] && wallsStartPoss[uu][tt][1] - HA == wallsStartPoss[uu][yy][1]) {//checks if theres a wall to the top-left
                                     leftUpcheck = true;
                                 }
-                                if (wallsStartPoss[uu][tt][0] + 1 == wallsStartPoss[uu][yy][0] && wallsStartPoss[uu][tt][1] - HA == wallsStartPoss[uu][yy][1]) {
+                                if (wallsStartPoss[uu][tt][0] + 1 == wallsStartPoss[uu][yy][0] && wallsStartPoss[uu][tt][1] - HA == wallsStartPoss[uu][yy][1]) {//checks if theres a wall to the top-right
                                     rightUpcheck = true;
                                 }
-                                if (wallsStartPoss[uu][tt][0] - 1 == wallsStartPoss[uu][yy][0] && wallsStartPoss[uu][tt][1] + HA == wallsStartPoss[uu][yy][1]) {
+                                if (wallsStartPoss[uu][tt][0] - 1 == wallsStartPoss[uu][yy][0] && wallsStartPoss[uu][tt][1] + HA == wallsStartPoss[uu][yy][1]) {//checks if theres a wall to the bottom-left
                                     leftDowncheck = true;
                                 }
-                                if (wallsStartPoss[uu][tt][0] + 1 == wallsStartPoss[uu][yy][0] && wallsStartPoss[uu][tt][1] + HA == wallsStartPoss[uu][yy][1]) {
+                                if (wallsStartPoss[uu][tt][0] + 1 == wallsStartPoss[uu][yy][0] && wallsStartPoss[uu][tt][1] + HA == wallsStartPoss[uu][yy][1]) {//checks if theres a wall to the bottom-tight
                                     rightDowncheck = true;
                                 }
                             }
-                        }
+                        }//for yy end
                         if (wallsStartPoss[uu][tt][4] == 'pit') { // if there were any walls next to this wall it will designate a spesific sprite, anmd have special corner pices if there wasent one in the corner
-                            if (leftcheck == true && rightcheck == false && upcheck == false && downcheck == false) { //left
-                                wallsStartPoss[uu][tt][3] = 20;
-                            } else if (leftcheck == true && rightcheck == true && upcheck == false && downcheck == false) { //left-right
-                                wallsStartPoss[uu][tt][3] = 22;
-                            } else if (leftcheck == true && rightcheck == true && upcheck == true && downcheck == false) { // left right up
-                                wallsStartPoss[uu][tt][3] = 12;
+                            if (leftcheck == true && rightcheck == false && upcheck == false && downcheck == false) { //only a wall to the left
+                                wallsStartPoss[uu][tt][3] = 20;//gives the wall this id
+                            } else if (leftcheck == true && rightcheck == true && upcheck == false && downcheck == false) { //only a wall to the left-right
+                                wallsStartPoss[uu][tt][3] = 22;//gives the wall this id
+                            } else if (leftcheck == true && rightcheck == true && upcheck == true && downcheck == false) { // only a wall to the left right up
+                                wallsStartPoss[uu][tt][3] = 12;//gives the wall this id
                                 if (leftUpcheck == false) {
-                                    wallsStartPoss[uu][tt][5].push(1);
+                                    wallsStartPoss[uu][tt][5].push(1);//gives the wall these extra corners over there sprite
                                 }
                                 if (rightUpcheck == false) {
-                                    wallsStartPoss[uu][tt][5].push(2);
+                                    wallsStartPoss[uu][tt][5].push(2);//gives the wall these extra corners over there sprite
                                 }
                             } else if (leftcheck == true && rightcheck == true && upcheck == true && downcheck == true) { // all
-                                wallsStartPoss[uu][tt][3] = 23;
+                                wallsStartPoss[uu][tt][3] = 23;//gives the wall this id
                                 if (leftUpcheck == false) {
-                                    wallsStartPoss[uu][tt][5].push(1);
+                                    wallsStartPoss[uu][tt][5].push(1);//gives the wall these extra corners over there sprite
                                 }
                                 if (rightUpcheck == false) {
-                                    wallsStartPoss[uu][tt][5].push(2);
+                                    wallsStartPoss[uu][tt][5].push(2);//gives the wall these extra corners over there sprite
                                 }
                                 if (leftDowncheck == false) {
-                                    wallsStartPoss[uu][tt][5].push(3);
+                                    wallsStartPoss[uu][tt][5].push(3);//gives the wall these extra corners over there sprite
                                 }
                                 if (rightDowncheck == false) {
-                                    wallsStartPoss[uu][tt][5].push(4);
+                                    wallsStartPoss[uu][tt][5].push(4);//gives the wall these extra corners over there sprite
                                 }
-                            } else if (leftcheck == false && rightcheck == true && upcheck == false && downcheck == false) { //right
-                                wallsStartPoss[uu][tt][3] = 19;
-                            } else if (leftcheck == true && rightcheck == false && upcheck == true && downcheck == false) { //left up
-                                wallsStartPoss[uu][tt][3] = 16;
+                            } else if (leftcheck == false && rightcheck == true && upcheck == false && downcheck == false) { //only a wall to the right
+                                wallsStartPoss[uu][tt][3] = 19;//gives the wall this id
+                            } else if (leftcheck == true && rightcheck == false && upcheck == true && downcheck == false) { //only a wall to the left up
+                                wallsStartPoss[uu][tt][3] = 16;//gives the wall this id
                                 if (leftUpcheck == false) {
-                                    wallsStartPoss[uu][tt][5].push(1);
+                                    wallsStartPoss[uu][tt][5].push(1);//gives the wall these extra corners over there sprite
                                 }
-                            } else if (leftcheck == true && rightcheck == false && upcheck == false && downcheck == true) { //left down
-                                wallsStartPoss[uu][tt][3] = 14;
+                            } else if (leftcheck == true && rightcheck == false && upcheck == false && downcheck == true) { //only a wall to the left down
+                                wallsStartPoss[uu][tt][3] = 14;//gives the wall this id
                                 if (leftDowncheck == false) {
-                                    wallsStartPoss[uu][tt][5].push(1);
+                                    wallsStartPoss[uu][tt][5].push(1);//gives the wall these extra corners over there sprite
                                 }
-                            } else if (leftcheck == true && rightcheck == false && upcheck == true && downcheck == true) { //left down up
-                                wallsStartPoss[uu][tt][3] = 10;
+                            } else if (leftcheck == true && rightcheck == false && upcheck == true && downcheck == true) { //only a wall to the left down up
+                                wallsStartPoss[uu][tt][3] = 10;//gives the wall this id
                                 if (leftDowncheck == false) {
-                                    wallsStartPoss[uu][tt][5].push(1);
+                                    wallsStartPoss[uu][tt][5].push(1);//gives the wall these extra corners over there sprite
                                 }
                                 if (leftUpcheck == false) {
-                                    wallsStartPoss[uu][tt][5].push(2);
+                                    wallsStartPoss[uu][tt][5].push(2);//gives the wall these extra corners over there sprite
                                 }
-                            } else if (leftcheck == true && rightcheck == true && upcheck == false && downcheck == true) { //left right down
-                                wallsStartPoss[uu][tt][3] = 11;
+                            } else if (leftcheck == true && rightcheck == true && upcheck == false && downcheck == true) { //only a wall to the left right down
+                                wallsStartPoss[uu][tt][3] = 11;//gives the wall this id
                                 if (leftDowncheck == false) {
-                                    wallsStartPoss[uu][tt][5].push(1);
+                                    wallsStartPoss[uu][tt][5].push(1);//gives the wall these extra corners over there sprite
                                 }
                                 if (rightDowncheck == false) {
-                                    wallsStartPoss[uu][tt][5].push(2);
+                                    wallsStartPoss[uu][tt][5].push(2);//gives the wall these extra corners over there sprite
                                 }
-                            } else if (leftcheck == false && rightcheck == true && upcheck == true && downcheck == true) { //right up down
-                                wallsStartPoss[uu][tt][3] = 9;
+                            } else if (leftcheck == false && rightcheck == true && upcheck == true && downcheck == true) { //only a wall to the right up down
+                                wallsStartPoss[uu][tt][3] = 9;//gives the wall this id
                                 if (rightUpcheck == false) {
-                                    wallsStartPoss[uu][tt][5].push(1);
+                                    wallsStartPoss[uu][tt][5].push(1);//gives the wall these extra corners over there sprite
                                 }
                                 if (rightDowncheck == false) {
-                                    wallsStartPoss[uu][tt][5].push(2);
+                                    wallsStartPoss[uu][tt][5].push(2);//gives the wall these extra corners over there sprite
                                 }
-                            } else if (leftcheck == false && rightcheck == false && upcheck == true && downcheck == true) { //up down
-                                wallsStartPoss[uu][tt][3] = 21;
-                            } else if (leftcheck == false && rightcheck == true && upcheck == true && downcheck == false) { //right up
-                                wallsStartPoss[uu][tt][3] = 15;
+                            } else if (leftcheck == false && rightcheck == false && upcheck == true && downcheck == true) { //only a wall to the up down
+                                wallsStartPoss[uu][tt][3] = 21;//gives the wall this id
+                            } else if (leftcheck == false && rightcheck == true && upcheck == true && downcheck == false) { //only a wall to the right up
+                                wallsStartPoss[uu][tt][3] = 15;//gives the wall this id
                                 if (rightUpcheck == false) {
-                                    wallsStartPoss[uu][tt][5].push(1);
+                                    wallsStartPoss[uu][tt][5].push(1);//gives the wall these extra corners over there sprite
                                 }
-                            } else if (leftcheck == false && rightcheck == false && upcheck == true && downcheck == false) { //up
-                                wallsStartPoss[uu][tt][3] = 17;
-                            } else if (leftcheck == false && rightcheck == false && upcheck == false && downcheck == true) { //down
-                                wallsStartPoss[uu][tt][3] = 18;
-                            } else if (leftcheck == false && rightcheck == true && upcheck == false && downcheck == true) { //right down
-                                wallsStartPoss[uu][tt][3] = 13;
+                            } else if (leftcheck == false && rightcheck == false && upcheck == true && downcheck == false) { //only a wall to the up
+                                wallsStartPoss[uu][tt][3] = 17;//gives the wall this id
+                            } else if (leftcheck == false && rightcheck == false && upcheck == false && downcheck == true) { //only a wall to the down
+                                wallsStartPoss[uu][tt][3] = 18;//gives the wall this id
+                            } else if (leftcheck == false && rightcheck == true && upcheck == false && downcheck == true) { //only a wall to the right down
+                                wallsStartPoss[uu][tt][3] = 13;//gives the wall this id
                                 if (rightDowncheck == false) {
-                                    wallsStartPoss[uu][tt][5].push(1);
+                                    wallsStartPoss[uu][tt][5].push(1);//gives the wall these extra corners over there sprite
                                 }
                             } else {
-                                wallsStartPoss[uu][tt][3] = 4;
+                                wallsStartPoss[uu][tt][3] = 4;//wall has no walls next to it
                             }
                         }
-                    }
-                }
-            }
+                    }//for tt end
+                }//for uu end
+            }//func end
 
         </script>
     </canvas>
